@@ -71,13 +71,66 @@ with every other condition perfect.
 This tooling exists because we could not tell you in advance which side of that line
 you are on, and neither could you. So measure it.
 
+## Run HST on your own operator, and see the before/after
+
+This is the part the rest of the tree exists to set up. Three steps, all local.
+
+```bash
+pip install ./packages/hstcore-py
+python3 -c "
+import spdelta as sd
+from spdelta import hst
+rt = hst.locate()                      # finds bin/ and the library; no token needed
+a  = sd.banded(4096, 13, seed=11)      # or any scipy sparse matrix of yours
+rows = sd.sweep(sd.ladder() + [rt.arm()],
+                sd.standard_cells([('mine', a)],
+                    [lambda n,m,r: sd.frozen(),
+                     lambda n,m,r: sd.drift(sd.Topology.line(m.shape[1],3), r)],
+                    rhos=(0.01, 0.25), seeds=(17,)),
+                reference=sd.reference())
+"
+```
+
+`sd.ladder()` is the before — full recompute, masked row scan, and a competent
+column delta. `rt.arm()` is the after. Every arm, HST included, is checked against
+a from-scratch oracle after every repeat, and there is no keyword that turns that
+off. What comes back is one row per (arm, motion, ρ, seed) with the conditions
+attached.
+
+**Read the ratio against `column_delta_csc`, not against `full_matvec`.** Against
+a full recompute everything looks spectacular, including the pure-Python column
+delta. The number that decides anything is HST against the best baseline you would
+otherwise write — and in the frozen control HST is expected to *lose*, because it
+scans tile-padded entries where a column-exact delta touches only the dirty
+columns' nonzeros. If your dirty set never moves, the ladder will tell you so and
+you should not buy anything.
+
+Two mechanical notes. `bin/hst-compile.<platform>` turns your matrix into an operator
+artifact — `hst_open` takes an artifact and none of the thirteen exported
+functions makes one, so nothing runs without it; it is not metered and needs no
+token. And `bin/hst_compare.<platform>` is the same before/after as a standalone
+binary, for a workload you would rather express as a stream than as scipy:
+
+```bash
+# pick the build for YOUR machine: ls bin/hst_compare.*
+./bin/hst_compare.linux-x86_64 --op your_op.bin --stream your_stream.bin --license ""
+./bin/hst_compare.darwin-arm64 --op your_op.bin --stream your_stream.bin --license ""
+```
+
+No licence argument is needed for the community library — `--license ""` is fine, and
+so is omitting it. Nothing here contacts a server.
+
 ## Platforms
 
 **Linux x86_64, macOS arm64, and Windows.** `install.sh` and `verify.sh` are
 bash scripts; on Windows run them from Git Bash, which ships with Git for
-Windows. All three are built, copied out of their source checkout, installed and
-verified in CI on every push, so this is a claim with a run behind it rather
-than an intention.
+Windows. This tree carries its own workflow — `.github/workflows/verify.yml` —
+which checks `SHA256SUMS`, then runs `./install.sh` and `./verify.sh` on
+ubuntu, macos and windows runners, and its runs are public on this repository's
+Actions tab, so the claim is checkable by you rather than vouched for by us.
+(The private estate that builds this tree runs its own three-platform install
+matrix on every push as well; that one you cannot see, which is why this one
+exists.)
 
 What we have **not** tested, said plainly because "supported" would otherwise be
 read as covering it:
@@ -158,10 +211,8 @@ library yet.** What exists today is `hst tune`: it measures both paths on your o
 workload and reports what it found, and you apply the result. That is a genuinely
 useful advisory tool. It is not a router, and we are not going to call it one.
 
-This section said the opposite until 2026-08-07 — that the build ran both arms and took
-the winner. That was never true of any build we have ever shipped. It is corrected here
-rather than quietly, because a reader who takes a routing claim at face value and then
-reads the behaviour has learned something worse about us than a threshold.
+This section once claimed the opposite; the dated correction is in
+[`ERRATA.md`](ERRATA.md).
 
 When measuring does land it will not be a paid feature. The paid build's difference is a
 third path to choose between, never a smarter way of choosing — and the manifest that
@@ -268,55 +319,6 @@ downloads, so the cases are reconstructible rather than shipped. It is dedicated
 public domain under CC0 1.0 rather than Apache-2.0, so you can lift any of it into your
 own test suite without carrying a notice with it.
 
-## Run HST on your own operator, and see the before/after
-
-This is the part the rest of the tree exists to set up. Three steps, all local.
-
-```bash
-pip install ./packages/hstcore-py
-python3 -c "
-import spdelta as sd
-from spdelta import hst
-rt = hst.locate()                      # finds bin/ and the library; no token needed
-a  = sd.banded(4096, 13, seed=11)      # or any scipy sparse matrix of yours
-rows = sd.sweep(sd.ladder() + [rt.arm()],
-                sd.standard_cells([('mine', a)],
-                    [lambda n,m,r: sd.frozen(),
-                     lambda n,m,r: sd.drift(sd.Topology.line(m.shape[1],3), r)],
-                    rhos=(0.01, 0.25), seeds=(17,)),
-                reference=sd.reference())
-"
-```
-
-`sd.ladder()` is the before — full recompute, masked row scan, and a competent
-column delta. `rt.arm()` is the after. Every arm, HST included, is checked against
-a from-scratch oracle after every repeat, and there is no keyword that turns that
-off. What comes back is one row per (arm, motion, ρ, seed) with the conditions
-attached.
-
-**Read the ratio against `column_delta_csc`, not against `full_matvec`.** Against
-a full recompute everything looks spectacular, including the pure-Python column
-delta. The number that decides anything is HST against the best baseline you would
-otherwise write — and in the frozen control HST is expected to *lose*, because it
-scans tile-padded entries where a column-exact delta touches only the dirty
-columns' nonzeros. If your dirty set never moves, the ladder will tell you so and
-you should not buy anything.
-
-Two mechanical notes. `bin/hst-compile.<platform>` turns your matrix into an operator
-artifact — `hst_open` takes an artifact and none of the thirteen exported
-functions makes one, so nothing runs without it; it is not metered and needs no
-token. And `bin/hst_compare.<platform>` is the same before/after as a standalone
-binary, for a workload you would rather express as a stream than as scipy:
-
-```bash
-# pick the build for YOUR machine: ls bin/hst_compare.*
-./bin/hst_compare.linux-x86_64 --op your_op.bin --stream your_stream.bin --license ""
-./bin/hst_compare.darwin-arm64 --op your_op.bin --stream your_stream.bin --license ""
-```
-
-No licence argument is needed for the community library — `--license ""` is fine, and
-so is omitting it. Nothing here contacts a server.
-
 ## Calling the runtime from your language
 
 `bin/` holds `libhstcore` and its header. `packages/hstcore-*` holds a binding for each
@@ -333,11 +335,9 @@ of six languages, all Apache-2.0, all binding the same thirteen `extern "C"` fun
 
 **Every command above installs from this download, and that is not a convenience —
 it is the only thing that works.** None of these packages is published to PyPI, npm,
-Maven Central, NuGet or crates.io yet. Until 2026-08-06 three of these rows read
-`go get` / `cargo add` / `dotnet add package`, naming coordinates that return 404, and
-`hstcore-rs`'s README linked a GitHub repository for `spdelta` while `spdelta` sat two
-directories away in the same tree. Each binding's own README says the same thing and
-will name a registry coordinate when one exists.
+Maven Central, NuGet or crates.io yet. Each binding's own README says the same thing
+and will name a registry coordinate when one exists. (This table once said otherwise;
+the dated correction is in [`ERRATA.md`](ERRATA.md).)
 
 Each has its own README with a worked example and the concurrency rules — **a session is
 one mutable cursor over library-owned memory and is not thread-safe**, which is the
@@ -389,10 +389,25 @@ not a disqualifier — ask whether they skip the *scan*.
 
 ## Licence
 
-**Apache-2.0, `bin/` included.** The library, the operator compiler and the before/after
-tool are under the same licence as the packages beside them: production use, modification
-and redistribution are permitted, and there is no key, token, quota or expiry anywhere in
-this tree.
+**Apache-2.0, `bin/` included — and `bin/` is binary-only.** The library, the operator
+compiler and the before/after tool are under the same licence as the packages beside
+them, and they ship as compiled artifacts with no source anywhere in this tree. That is
+deliberate, not an oversight to be reported: the kernel source is the product — the same
+boundary the paid tier is built on — and it is withheld on purpose.
+
+So be precise about what the Apache grant means over a binary, because all of it is
+real: you may use it in production, link it from any language, ship it inside your own
+product, and redistribute it, commercially, without asking us. What you cannot do in
+practice is modify it — the licence grants that right and the download does not give you
+the means, and we would rather say that in one sentence here than let you discover it
+after planning around it.
+
+What you *can* check about a binary you cannot read: `SHA256SUMS` at the root of this
+tree covers every file in `bin/` plus `install.sh` and `verify.sh` — `shasum -a 256 -c
+SHA256SUMS` verifies what you received, and `./verify.sh` runs that check first — and
+`packages/hstcore-abi/abi.json` plus `validate.py` beside it check the library's exports
+against the documented ABI. There is no key, token, quota or expiry anywhere in this
+tree.
 
 This is the free tier in the ordinary sense of the word. The paid tier is a *capability*
 we have not put in this build — Profile 3 — and not a lock on this one.

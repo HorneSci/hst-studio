@@ -1,0 +1,95 @@
+# Public verification of this tree, run where anyone can read the logs.
+#
+# This is the workflow the README's Platforms section points at. It does the
+# same thing a downloader is told to do, in the order that matters:
+#
+#   1. verify SHA256SUMS  -- supply chain before execution: nothing in bin/
+#                            runs until it matches the published checksums
+#   2. ./install.sh       -- the install a stranger runs
+#   3. ./verify.sh        -- the proof, on the runner's own hardware
+#
+# On Linux and macOS runners step 3 exercises the shipped runtime libraries
+# when the tree carries them -- that is the point, not a side effect. On
+# Windows there is no runtime library (the README says so) and verify.sh
+# reports the skips honestly.
+#
+# No continue-on-error anywhere: a red cell is the finding, not a nuisance.
+# The timings verify.sh prints here are worthless -- shared, unpinned,
+# virtualised hardware -- and nothing here treats them as measurements.
+
+name: verify
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: verify ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # One platform failing must not cancel the others: which platforms work
+      # is the question, and fail-fast destroys the answer.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    # bash everywhere, including Windows: Git Bash ships on GitHub's Windows
+    # runners, so install.sh and verify.sh run as written.
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned, not "latest": a pass that depends on a runner image bumping
+      # Python is not a fact about this tree. install.sh's own floor is 3.11.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Printed, not asserted: when a cell goes red later, the first question
+      # is what changed underneath it.
+      - name: toolchain identity
+        run: |
+          echo "runner  $RUNNER_OS $RUNNER_ARCH"
+          python3 --version || python --version
+          bash --version | head -1
+          uname -a || true
+
+      # Sums first. If what checked out is not what was published, nothing
+      # below should execute it.
+      - name: verify checksums
+        run: shasum -a 256 -c SHA256SUMS
+
+      - name: install
+        run: |
+          mkdir -p ci-logs
+          ./install.sh 2>&1 | tee "ci-logs/install-${{ matrix.os }}.log"
+
+      # if: always() so a broken install still produces a verify log to read.
+      # verify.sh exits 1 if any check failed, and that exit code is the job's.
+      - name: verify
+        if: always()
+        run: |
+          mkdir -p ci-logs
+          ./verify.sh 2>&1 | tee "ci-logs/verify-${{ matrix.os }}.log"
+
+      # A failure you must re-run to read is a failure you will read late.
+      - name: upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-${{ matrix.os }}
+          path: ci-logs/
+          if-no-files-found: warn
+          retention-days: 14

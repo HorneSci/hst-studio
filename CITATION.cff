@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, cite the repository. If you are citing the
+  measurements or the method, cite the paper artifact in repro/paper-artifact/
+  as well — the paper is not yet placed, so cite the artifact by this
+  repository's URL and path. No DOI exists yet, so none is listed here.
+title: HST Studio — Community
+type: software
+authors:
+  - name: HorneSci Research
+  - family-names: Horne
+    given-names: Hunter
+  - family-names: Spencer
+    given-names: Eric
+repository-code: https://github.com/HorneSci/hst-studio
+license: Apache-2.0

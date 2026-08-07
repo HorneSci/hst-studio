@@ -86,6 +86,28 @@ HOST_PLAT="$HOST_OS-$HOST_ARCH"
 
 printf '\n  HST Studio Community — verify\n\n'
 
+# --- 0. what you received is what was published ------------------------------
+# Supply chain before execution: SHA256SUMS covers every file in bin/ plus
+# install.sh and verify.sh -- the things this tree asks you to run, including
+# the binaries nobody can read the source of. Checked first, before anything
+# in bin/ executes. Needs no venv and no network.
+if [ -f SHA256SUMS ]; then
+  SUMCMD=""
+  if command -v shasum >/dev/null 2>&1; then SUMCMD="shasum -a 256"
+  elif command -v sha256sum >/dev/null 2>&1; then SUMCMD="sha256sum"
+  fi
+  if [ -z "$SUMCMD" ]; then
+    skip "sums — neither shasum nor sha256sum on this machine"
+  elif out="$($SUMCMD -c SHA256SUMS 2>&1)"; then
+    ok "sums — bin/ matches SHA256SUMS"
+  else
+    bad "sums — a file does not match SHA256SUMS. Do not run it; re-download."
+    printf '%s\n' "$out" | grep -v ': OK$' | sed 's/^/        /'
+  fi
+else
+  tier "SHA256SUMS — not in this tree"
+fi
+
 if [ ! -x "$VPY" ]; then
   printf '  No virtualenv at %s. Run ./install.sh first.\n\n' "$VENV" >&2
   exit 1

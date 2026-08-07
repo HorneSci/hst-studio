@@ -1,5 +1,9 @@
 # Numbers in `paper.tex` that no longer match the record
 
+*(This file is about the **paper**. Corrections to the download's own README
+and scripts live in `ERRATA.md` at the root of the tree this ships in — two
+directories up from here.)*
+
 Checked 2026-08-04 against `docs/CANONICAL_NUMBERS.md` and
 `docs/RETRACTED_NUMBERS.md` as they stand today. **Nothing below was changed in
 `paper.tex`.** Updating a published number is a decision, not a cleanup, and

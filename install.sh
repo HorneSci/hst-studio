@@ -76,9 +76,11 @@ if [ -n "$WHEELS" ]; then say "offline     --no-index, wheels from ${WHEELS}"; f
 # 3.11, not 3.10: bindnum and claimlint both declare requires-python >= 3.11.
 # This floor said 3.10 until 2026-08-06, so a 3.10 user cleared preflight and
 # then died inside pip's resolver on the second package -- a confusing failure
-# halfway through an install that had already told them they were fine. Keep
-# this in step with the strictest requires-python across packages/*; that is
-# what tests/test_tier_manifest.py asserts.
+# halfway through an install that had already told them they were fine. The
+# floor is 3.11 because bindnum and claimlint both declare
+# `requires-python = ">=3.11"` -- check packages/bindnum/pyproject.toml and
+# packages/claimlint/pyproject.toml, which ship in this tree. Keep this in
+# step with the strictest requires-python across packages/*.
 command -v "$PY" >/dev/null 2>&1 || die \
   "No '$PY' on PATH. Install Python 3.11 or newer, or set PYTHON=/path/to/python3."
 
