@@ -68,8 +68,22 @@ jobs:
 
       # Sums first. If what checked out is not what was published, nothing
       # below should execute it.
+      #
+      # sha256sum, falling back to shasum: Git Bash on the Windows runner has
+      # coreutils' sha256sum and no shasum (perl), macOS has shasum and no
+      # sha256sum, Linux has both. The first run of this workflow failed on
+      # exactly this, exit 127, and the 127 cascaded -- install was skipped, so
+      # the always()-guarded verify step then failed on a missing venv two
+      # steps from the actual cause. verify.sh itself already carries this
+      # fallback, which is how it printed "ok sums" on the same runner this
+      # step died on.
       - name: verify checksums
-        run: shasum -a 256 -c SHA256SUMS
+        run: |
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum -c SHA256SUMS
+          else
+            shasum -a 256 -c SHA256SUMS
+          fi
 
       - name: install
         run: |
