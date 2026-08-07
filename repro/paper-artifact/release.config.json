@@ -1,0 +1,318 @@
+{
+  "_comment": [
+    "The one config that drives the public artifact. Public and private are two",
+    "PROFILES of the same pipeline, never two codebases: `private` is a superset",
+    "that keeps the internal vocabulary, `public` renames and drops. Every tuning",
+    "decision that differs between the two lives here and nowhere else -- the CSV",
+    "column policy, the arm vocabulary, which figures ship, and the gate that",
+    "checks the result.",
+    "",
+    "Order of operations in export_csvs.py, per CSV:",
+    "  1. drop the free-text columns outright (they carry prose, not values)",
+    "  2. apply `column_rename` IN ORDER (first match wins per rule, all rules run)",
+    "  3. drop any column matching `column_deny` (matched AFTER renaming, so an",
+    "     arm ratio whose name merely contained 'tile' survives while the tiling",
+    "     structure columns do not)",
+    "  4. rewrite categorical VALUES through `value_rename`",
+    "  5. assert the surviving header against `forbid` and against the kernel",
+    "     denylist; a hit is an error, never a warning"
+  ],
+  "denylist_path": "../../docs/kernel-denylist.txt",
+  "source_dir": "../../learn/pytorch_fit",
+  "output_dir": "data",
+  "arm_vocabulary": {
+    "_comment": "The only arm names a released CSV may use.",
+    "full_recompute": "recompute the whole product from scratch each step",
+    "delta_baseline": "the open column-exact delta baseline",
+    "block_open": "the open block-scheduled reference arm (blocksched_ref.hpp)",
+    "block_open_merged": "the same arm, globally row-merged emission",
+    "hst": "the closed block-scheduled arm, unversioned"
+  },
+  "csv_allowlist": [
+    "alpha400_mix.csv",
+    "alpha_mix.csv",
+    "baseline_best.csv",
+    "control_bootstrap.csv",
+    "control_seed_spread.csv",
+    "family.csv",
+    "family_jump_nnz.csv",
+    "family_jump_plain.csv",
+    "family_key_fast.csv",
+    "family_key_python.csv",
+    "merge_rows.csv",
+    "merge_rows_replicate.csv",
+    "merge_structural.csv",
+    "ordering_drift.csv",
+    "p4_churn_drift_pooled.csv",
+    "p4_churn_jump_pooled.csv",
+    "p4_frozen.csv",
+    "predictor_bootstrap.csv",
+    "predictor_study.csv",
+    "seeds_drift_pooled.csv",
+    "seeds_jump_pooled.csv",
+    "seeds_models.csv",
+    "selection_reexam_o1.csv",
+    "selection_reexam_o2.csv",
+    "selection_reexam_o2_ablation.csv",
+    "selection_reexam_o3.csv",
+    "selection_reexam_o3_contrasts.csv",
+    "selection_reexam_session.csv",
+    "selection_reexam_session_crossover.csv",
+    "session_tax.csv",
+    "session_tax_pooled.csv",
+    "slice_nnz.csv",
+    "splice.csv",
+    "torch_native_t8.csv"
+  ],
+  "profiles": {
+    "public": {
+      "drop_freetext": [
+        "router_decisions",
+        "note",
+        "why"
+      ],
+      "column_rename": [
+        [
+          "\\|dens\\b",
+          "|padding-ratio-feature"
+        ],
+        [
+          "^dense_sub_ms$",
+          "framework_subtract_ms"
+        ],
+        [
+          "^bs_tile_vs_csr$",
+          "block_open_vs_delta_baseline"
+        ],
+        [
+          "^bs_merge_vs_csr$",
+          "block_open_merged_vs_delta_baseline"
+        ],
+        [
+          "^bs_merge_vs_bs_tile$",
+          "block_open_merged_vs_block_open"
+        ],
+        [
+          "^p3_vs_bs_tile$",
+          "hst_vs_block_open"
+        ],
+        [
+          "^p3_vs_csr$",
+          "hst_vs_delta_baseline"
+        ],
+        [
+          "^p2_rows$",
+          "rows_merged"
+        ],
+        [
+          "^p3_rows$",
+          "rows_per_block"
+        ],
+        [
+          "^p4_rows$",
+          "rows_patchable"
+        ],
+        [
+          "^p4_arena_ratio$",
+          "patchable_arena_ratio"
+        ],
+        [
+          "^p4_vs_p3$",
+          "patchable_vs_per_block"
+        ],
+        [
+          "^p4_exec_vs_p2_exec$",
+          "patchable_exec_vs_merged_exec"
+        ],
+        [
+          "^p4_build_ms$",
+          "patchable_build_ms"
+        ],
+        [
+          "^p2_build_ms$",
+          "merged_build_ms"
+        ],
+        [
+          "^p3_new$",
+          "per_block_new"
+        ],
+        [
+          "^splice$",
+          "splices"
+        ],
+        [
+          "^always_csr_ms$",
+          "always_delta_baseline_ms"
+        ],
+        [
+          "^csr_rebuilds$",
+          "delta_baseline_rebuilds"
+        ],
+        [
+          "^misroute_cost_if_csr$",
+          "misroute_cost_if_delta_baseline"
+        ],
+        [
+          "^csr_nnz$",
+          "delta_baseline_nnz"
+        ],
+        [
+          "^csr_best_ms$",
+          "delta_baseline_best_ms"
+        ],
+        [
+          "^csr1_ms$",
+          "delta_baseline_1thread_ms"
+        ],
+        [
+          "^hst_vs_csr_best$",
+          "hst_vs_delta_baseline_best"
+        ],
+        [
+          "^hst_nnz$",
+          "block_nnz"
+        ],
+        [
+          "^csc_ms$",
+          "delta_csc_ms"
+        ],
+        [
+          "^full_ms$",
+          "full_recompute_ms"
+        ],
+        [
+          "^torch_full_ms$",
+          "full_recompute_framework_ms"
+        ],
+        [
+          "^hst_vs_best_torch_delta$",
+          "hst_vs_best_framework_delta"
+        ],
+        [
+          "^merge_per_tile$",
+          "rows_per_block"
+        ],
+        [
+          "^merge_merged$",
+          "rows_merged"
+        ],
+        [
+          "^per_tile$",
+          "rows_per_block"
+        ],
+        [
+          "^merged$",
+          "rows_merged"
+        ],
+        [
+          "^bs_tile_",
+          "block_open_"
+        ],
+        [
+          "^bs_merge_",
+          "block_open_merged_"
+        ],
+        [
+          "^csr_",
+          "delta_baseline_"
+        ],
+        [
+          "^always_hst_p4_ms$",
+          "always_hst_patchable_ms"
+        ],
+        [
+          "^p4_vs_csr$",
+          "patchable_vs_delta_baseline"
+        ],
+        [
+          "^p4_splices$",
+          "patchable_splices"
+        ],
+        [
+          "^p4_splice_rate$",
+          "patchable_splice_rate"
+        ],
+        [
+          "^p4_dead_ratio$",
+          "patchable_dead_ratio"
+        ],
+        [
+          "^p4_maxrelerr$",
+          "patchable_maxrelerr"
+        ],
+        [
+          "^csc_",
+          "delta_csc_"
+        ]
+      ],
+      "column_deny": [
+        "(^|_)tiles?(_|$)",
+        "^dens$",
+        "_dens$",
+        "^dens_",
+        "scanned",
+        "^exact$",
+        "touched_nnz",
+        "^p2_",
+        "^p3_",
+        "^p4_",
+        "^p3mt_",
+        "_p2_",
+        "_p3_",
+        "_p4_",
+        "router_probes",
+        "^segs?_",
+        "_segs?$",
+        "^sched_",
+        "_sched_",
+        "hst_eligible",
+        "^hst_(mean|median|exec|pre|build|res)",
+        "dirty_tile[_-]"
+      ],
+      "value_rename": {
+        "hst_p3": "hst",
+        "hst_p2": "hst",
+        "hst_p4": "hst",
+        "csr_delta": "delta_baseline",
+        "csr": "delta_baseline",
+        "bs_tile": "block_open",
+        "bs_merge": "block_open_merged"
+      },
+      "forbid": [
+        "dens",
+        "p4_",
+        "p3_",
+        "p2_",
+        "router_probes",
+        "tile"
+      ],
+      "figures": [
+        "fig_family",
+        "fig_motion",
+        "fig_merge",
+        "fig_control",
+        "fig_regret_cdf",
+        "fig_splice",
+        "fig_baselines",
+        "fig_alpha"
+      ],
+      "figures_excluded": {
+        "fig_padding": "x-axis is entries-scanned over entries-needed; the column is dropped",
+        "fig_dens_overlap": "histogram of the padding ratio by winning arm; the column is dropped"
+      },
+      "_forbid_comment": "Release-policy additions only. Kernel identifiers live in docs/kernel-denylist.txt and are loaded from there -- do not restate one here; the scanner reads this file too."
+    },
+    "private": {
+      "_comment": "Internal superset. Same pipeline, no policy: nothing renamed, nothing dropped, and the gate is off. Never distribute output of this profile.",
+      "drop_freetext": [],
+      "column_rename": [],
+      "column_deny": [],
+      "value_rename": {},
+      "forbid": [],
+      "enforce_denylist": false,
+      "figures": [
+        "*"
+      ]
+    }
+  }
+}

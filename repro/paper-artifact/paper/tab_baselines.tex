@@ -1,0 +1,12 @@
+\begin{tabular}{lrr}
+\toprule
+delta implementation & ms/step & $\div$ our baseline \\
+\midrule
+PyTorch, delta re-sliced each step & 3.331 & 197.9$\times$ \\
+PyTorch \texttt{torch.sparse.mm}, full recompute & 1.234 & 73.3$\times$ \\
+PyTorch, delta pre-sliced once & 0.383 & 22.7$\times$ \\
+CSC delta, hand-written C++ & 0.059 & 3.5$\times$ \\
+column-exact CSR delta, 1 thread & 0.041 & 2.5$\times$ \\
+\textbf{column-exact CSR delta, best thread count} & 0.017 & 1.0$\times$ \\
+\bottomrule
+\end{tabular}

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+matrices/
+reference/reference_spmv
+probes/hst_wavefront_exact_probe
+probes/hst_dc_telemetry

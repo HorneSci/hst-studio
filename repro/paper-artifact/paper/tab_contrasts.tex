@@ -1,0 +1,45 @@
+\begin{tabular}{lccc}
+\toprule
+scope & geomean reg. & worst-case reg. & accuracy\\
+\midrule
+\multicolumn{4}{l}{\emph{local drift}}\\
+\midrule
+\multicolumn{4}{l}{(a) nested structure-only $-$ policy}\\
+\quad frozen ($n{=}105$) & $-0.027$ {\scriptsize$[-0.07,+0.03]$} & $+0.049$ {\scriptsize$[-0.21,+0.21]$} & $-0.048$ {\scriptsize$[-0.14,+0.00]$} \\
+\quad mixture ($n{=}523$) & {\boldmath $+0.080$ {\scriptsize$[+0.05,+0.11]$}} & {\boldmath $+2.766$ {\scriptsize$[+0.77,+4.50]$}} & {\boldmath $-0.189$ {\scriptsize$[-0.20,-0.17]$}} \\
+\addlinespace[2pt]
+\multicolumn{4}{l}{(b) $\rho$-only tree $-$ nested structure-only}\\
+\quad frozen ($n{=}105$) & $-0.016$ {\scriptsize$[-0.05,+0.00]$} & $-0.253$ {\scriptsize$[-0.40,+0.00]$} & $+0.048$ {\scriptsize$[+0.00,+0.14]$} \\
+\quad mixture ($n{=}523$) & {\boldmath $-0.159$ {\scriptsize$[-0.20,-0.11]$}} & {\boldmath $-4.293$ {\scriptsize$[-4.85,-2.85]$}} & {\boldmath $+0.189$ {\scriptsize$[+0.17,+0.20]$}} \\
+\addlinespace[2pt]
+\multicolumn{4}{l}{(c) nested structure$+\rho$ $-$ policy}\\
+\quad frozen ($n{=}105$) & $-0.027$ {\scriptsize$[-0.07,+0.03]$} & $+0.049$ {\scriptsize$[-0.21,+0.21]$} & $-0.048$ {\scriptsize$[-0.14,+0.00]$} \\
+\quad mixture ($n{=}523$) & {\boldmath $-0.078$ {\scriptsize$[-0.10,-0.05]$}} & {\boldmath $-1.526$ {\scriptsize$[-2.08,-0.35]$}} & $+0.000$ {\scriptsize$[+0.00,+0.00]$} \\
+\addlinespace[2pt]
+\multicolumn{4}{l}{(d) nested structure$+\rho$ $-$ policy (+calib.)}\\
+\quad frozen ($n{=}105$) & {\boldmath $-0.093$ {\scriptsize$[-0.14,-0.04]$}} & $+0.004$ {\scriptsize$[-0.26,+0.16]$} & $-0.048$ {\scriptsize$[-0.14,+0.00]$} \\
+\quad mixture ($n{=}523$) & {\boldmath $-0.330$ {\scriptsize$[-0.40,-0.28]$}} & {\boldmath $-2.355$ {\scriptsize$[-2.67,-0.86]$}} & $+0.000$ {\scriptsize$[+0.00,+0.00]$} \\
+\midrule
+\multicolumn{4}{l}{\emph{uniform jump}}\\
+\midrule
+\multicolumn{4}{l}{(a) nested structure-only $-$ policy}\\
+\quad frozen ($n{=}105$) & $-0.003$ {\scriptsize$[-0.06,+0.06]$} & $+1.115$ {\scriptsize$[-0.21,+1.59]$} & $-0.047$ {\scriptsize$[-0.11,+0.00]$} \\
+\quad churning ($n{=}419$) & $-0.009$ {\scriptsize$[-0.06,+0.07]$} & {\boldmath $+2.306$ {\scriptsize$[+0.17,+3.17]$}} & $-0.063$ {\scriptsize$[-0.15,+0.01]$} \\
+\quad mixture ($n{=}524$) & {\boldmath $+0.104$ {\scriptsize$[+0.02,+0.20]$}} & {\boldmath $+4.166$ {\scriptsize$[+2.04,+5.46]$}} & {\boldmath $-0.222$ {\scriptsize$[-0.33,-0.12]$}} \\
+\addlinespace[2pt]
+\multicolumn{4}{l}{(b) $\rho$-only tree $-$ nested structure-only}\\
+\quad frozen ($n{=}105$) & $-0.036$ {\scriptsize$[-0.09,+0.00]$} & $-1.306$ {\scriptsize$[-1.78,+0.00]$} & $+0.047$ {\scriptsize$[+0.00,+0.11]$} \\
+\quad churning ($n{=}419$) & $-0.005$ {\scriptsize$[-0.08,+0.05]$} & $-1.976$ {\scriptsize$[-3.11,+0.00]$} & $-0.058$ {\scriptsize$[-0.15,+0.03]$} \\
+\quad mixture ($n{=}524$) & {\boldmath $-0.123$ {\scriptsize$[-0.22,-0.04]$}} & {\boldmath $-3.836$ {\scriptsize$[-5.40,-1.55]$}} & $+0.125$ {\scriptsize$[-0.01,+0.26]$} \\
+\addlinespace[2pt]
+\multicolumn{4}{l}{(c) nested structure$+\rho$ $-$ policy}\\
+\quad frozen ($n{=}105$) & $-0.003$ {\scriptsize$[-0.06,+0.06]$} & $+1.115$ {\scriptsize$[-0.21,+1.59]$} & $-0.047$ {\scriptsize$[-0.11,+0.00]$} \\
+\quad churning ($n{=}419$) & {\boldmath $-0.060$ {\scriptsize$[-0.08,-0.04]$}} & $-0.168$ {\scriptsize$[-0.20,+0.02]$} & $+0.003$ {\scriptsize$[-0.06,+0.06]$} \\
+\quad mixture ($n{=}524$) & {\boldmath $-0.044$ {\scriptsize$[-0.07,-0.02]$}} & $+1.338$ {\scriptsize$[-0.17,+2.04]$} & $-0.005$ {\scriptsize$[-0.07,+0.05]$} \\
+\addlinespace[2pt]
+\multicolumn{4}{l}{(d) nested structure$+\rho$ $-$ policy (+calib.)}\\
+\quad frozen ($n{=}105$) & {\boldmath $-0.071$ {\scriptsize$[-0.12,-0.01]$}} & $+1.064$ {\scriptsize$[-0.27,+1.54]$} & $-0.047$ {\scriptsize$[-0.11,+0.00]$} \\
+\quad churning ($n{=}419$) & {\boldmath $-0.304$ {\scriptsize$[-0.39,-0.23]$}} & {\boldmath $-0.981$ {\scriptsize$[-1.42,-0.46]$}} & $+0.003$ {\scriptsize$[-0.06,+0.06]$} \\
+\quad mixture ($n{=}524$) & {\boldmath $-0.250$ {\scriptsize$[-0.31,-0.19]$}} & $+0.526$ {\scriptsize$[-1.42,+1.44]$} & $-0.005$ {\scriptsize$[-0.07,+0.05]$} \\
+\bottomrule
+\end{tabular}

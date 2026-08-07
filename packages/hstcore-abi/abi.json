@@ -1,0 +1,199 @@
+{
+  "_comment": [
+    "THE HST-core Embedded ABI, machine-readable. Single source of truth.",
+    "",
+    "WHY THIS FILE EXISTS. Thirteen functions times N languages, hand-written, is",
+    "13N places for a signature to drift, and drift in an FFI declaration does not",
+    "raise a type error -- it corrupts memory or silently reads the wrong field. The",
+    "estate has already paid for the general version of this lesson: a retracted rule",
+    "survived a docs pass because one field name did two jobs, and an int32/size_t",
+    "offset-width mismatch in the harness understated the product for months.",
+    "",
+    "So: bindings are GENERATED from this file, and validate.py fails when the built",
+    "library's exports and this manifest disagree. A binding nobody generated from",
+    "the manifest is a binding nobody can prove matches the library.",
+    "",
+    "PROVENANCE OF THE VERSION. embedded/exported.linux.map declares HSTCORE_1.4,",
+    "and commit 4b1c4bb bumped 1.3 -> 1.4 to add hst_apply_shadow. A libhstcore.so",
+    "found exporting 1.3 is a STALE BUILD, not a different ABI -- that exact skew was",
+    "live on 2026-08-05 (a .so at 1.3 beside a Python binding declaring 1.4).",
+    "",
+    "Note also: 4b1c4bb's message says '12 total'. There are THIRTEEN. Counted from",
+    "the version map, which is the artifact the linker reads."
+  ],
+
+  "abiNode": "HSTCORE_1.4",
+  "symbolCount": 13,
+  "header": "hstcore.h",
+  "versionMap": "embedded/exported.linux.map",
+  "libraryNames": {
+    "linux": "libhstcore.so",
+    "darwin": "libhstcore.dylib",
+    "windows": "hstcore.dll"
+  },
+
+  "_typeVocabulary": {
+    "handle": "hst_ctx* — opaque, owned by the library, freed by hst_close",
+    "handle_const": "const hst_ctx* — read-only accessor",
+    "cstring_in": "const char* — UTF-8, borrowed for the call",
+    "cstring_return": "const char* — static storage, never freed by the caller",
+    "char_buf_out": "char* — caller-allocated, paired with the next size param",
+    "usize": "size_t",
+    "i32": "int32_t",
+    "status": "int — 0 success, negative error; see errors[]",
+    "i32_array_in": "const int32_t* — borrowed",
+    "f64_array_in": "const double* — borrowed",
+    "f64_array_out": "double* — caller-allocated, may be NULL where noted",
+    "f64_array_return": "const double* — zero-copy view into library memory, invalidated by the next mutating call",
+    "void": "void"
+  },
+
+  "functions": [
+    {
+      "name": "hst_open",
+      "returns": "handle",
+      "returnsNullOnFailure": true,
+      "params": [
+        {"name": "artifact_path", "type": "cstring_in"},
+        {"name": "license_token", "type": "cstring_in"},
+        {"name": "errbuf", "type": "char_buf_out", "nullable": true},
+        {"name": "errbuf_len", "type": "usize", "pairedWith": "errbuf"}
+      ],
+      "licenceGated": true,
+      "doc": "Open a session from a compiled operator artifact. Takes a licence token, but as of 2026-08-06 that token is only checked by a separate, metered build of the same library -- the community build (Apache-2.0, unmetered, in an HST Studio download's bin/) compiles the check out and opens on an empty token. Where checked, returns NULL on invalid/expired licence, an operator larger than the licence permits, or an unreadable artifact, and writes a short reason into errbuf."
+    },
+    {
+      "name": "hst_open_batched",
+      "returns": "handle",
+      "returnsNullOnFailure": true,
+      "params": [
+        {"name": "artifact_path", "type": "cstring_in"},
+        {"name": "license_token", "type": "cstring_in"},
+        {"name": "batch", "type": "i32", "range": [1, 32]},
+        {"name": "errbuf", "type": "char_buf_out", "nullable": true},
+        {"name": "errbuf_len", "type": "usize", "pairedWith": "errbuf"}
+      ],
+      "licenceGated": true,
+      "doc": "As hst_open, but the session carries `batch` independent right-hand-side lanes (1..32) under the same operator and the same delta sparsity pattern. All state and delta buffers are LANE-INTERLEAVED: state[row*batch + b], vals[i*batch + b]. Batching amortizes the sparse index traversal across lanes, which is where HST beats a plain exact delta."
+    },
+    {
+      "name": "hst_apply_delta",
+      "returns": "status",
+      "params": [
+        {"name": "ctx", "type": "handle"},
+        {"name": "cols", "type": "i32_array_in", "lengthFrom": "n"},
+        {"name": "vals", "type": "f64_array_in", "lengthExpr": "n * batch"},
+        {"name": "n", "type": "i32"},
+        {"name": "y_out", "type": "f64_array_out", "nullable": true, "lengthExpr": "output_dim * batch"}
+      ],
+      "metered": "max_applies",
+      "doc": "Apply a sparse delta of n entries to the held state, in-process, no serialization. Column cols[i] changes by vals[i*batch + b] in lane b."
+    },
+    {
+      "name": "hst_apply_shadow",
+      "returns": "status",
+      "params": [
+        {"name": "ctx", "type": "handle"},
+        {"name": "cols", "type": "i32_array_in", "lengthFrom": "n"},
+        {"name": "vals", "type": "f64_array_in", "lengthExpr": "n * batch"},
+        {"name": "n", "type": "i32"},
+        {"name": "y_out", "type": "f64_array_out", "nullable": true, "lengthExpr": "output_dim * batch"}
+      ],
+      "metered": "max_shadow_applies",
+      "errors": [
+        {"code": -1, "meaning": "bad args"},
+        {"code": -2, "meaning": "internal exception"},
+        {"code": -3, "meaning": "shadow quota exhausted"},
+        {"code": -4, "meaning": "licence carries no shadow-apply grant (max_shadow_applies <= 0), checked unconditionally on every call"}
+      ],
+      "warning": "SHARES held state with hst_apply_delta on the same handle. Never interleave shadow and production applies on one hst_ctx — open a SEPARATE handle for shadow validation. Shadow rights come exclusively from the signed licence token; no argument, env var or flag can enable shadow mode.",
+      "doc": "Shadow-mode apply: identical numerics to hst_apply_delta, metered against max_shadow_applies instead of max_applies, and does not touch applies_used. This is the primitive SHADOW mode is built on."
+    },
+    {
+      "name": "hst_batch",
+      "returns": "i32",
+      "params": [{"name": "ctx", "type": "handle_const"}],
+      "doc": "Number of right-hand-side lanes for this handle (1 for hst_open)."
+    },
+    {
+      "name": "hst_output_dim",
+      "returns": "i32",
+      "params": [{"name": "ctx", "type": "handle_const"}],
+      "doc": "Output dimension N of the operator (rows). The held state buffer has N*batch doubles, lane-interleaved."
+    },
+    {
+      "name": "hst_input_dim",
+      "returns": "i32",
+      "params": [{"name": "ctx", "type": "handle_const"}],
+      "doc": "Input dimension M of the operator (columns)."
+    },
+    {
+      "name": "hst_state",
+      "returns": "f64_array_return",
+      "params": [{"name": "ctx", "type": "handle_const"}],
+      "lengthExpr": "output_dim * batch",
+      "warning": "Zero-copy view into library memory. Valid only until the next hst_apply_delta / hst_apply_shadow / hst_set_state / hst_close. A binding that hands this to a garbage-collected language MUST copy it.",
+      "doc": "Zero-copy read of the current dense output state, lane-interleaved."
+    },
+    {
+      "name": "hst_set_state",
+      "returns": "status",
+      "params": [
+        {"name": "ctx", "type": "handle"},
+        {"name": "y0", "type": "f64_array_in", "lengthFrom": "len"},
+        {"name": "len", "type": "i32", "mustEqual": "output_dim * batch"}
+      ],
+      "errors": [{"code": -1, "meaning": "null pointer or length mismatch"}],
+      "warning": "Sets ONLY the output state y. The internal INPUT state x — what hst_recompute_full computes A*x from — is separate. Priming y alone leaves x at pristine zero, and hst_recompute_full would disagree with y by exactly A*x0 forever. ALWAYS pair with hst_set_input using the same baseline. hst_recompute_full returns -5 rather than a silently wrong vector when the two were not primed together.",
+      "pairWith": "hst_set_input",
+      "doc": "Set the internal dense output state."
+    },
+    {
+      "name": "hst_set_input",
+      "returns": "status",
+      "params": [
+        {"name": "ctx", "type": "handle"},
+        {"name": "x0", "type": "f64_array_in", "lengthFrom": "len"},
+        {"name": "len", "type": "i32", "mustEqual": "input_dim * batch"}
+      ],
+      "errors": [{"code": -1, "meaning": "null pointer or length mismatch"}],
+      "warning": "Pair with hst_set_state using the corresponding baseline output. Priming only one of the pair leaves the handle in a state hst_recompute_full refuses to use.",
+      "pairWith": "hst_set_state",
+      "doc": "Set the internal dense input state x — the buffer hst_recompute_full computes A*x from. There is otherwise no way to set it other than accumulating one apply at a time from a pristine zero start."
+    },
+    {
+      "name": "hst_recompute_full",
+      "returns": "status",
+      "params": [
+        {"name": "ctx", "type": "handle"},
+        {"name": "y_out", "type": "f64_array_out", "lengthExpr": "output_dim * batch"}
+      ],
+      "metered": false,
+      "errors": [
+        {"code": -1, "meaning": "bad args"},
+        {"code": -2, "meaning": "internal exception"},
+        {"code": -5, "meaning": "refused: held input state x and output state y are not known to be consistent — set_state was called without a matching set_input, or vice versa"}
+      ],
+      "doc": "Reference baseline: recompute the full dense output A*x from scratch for the current held input state — the 'before' in a before/after comparison. NOT metered: this is the correctness reference the delta path is checked against, not the product hot path. This is what makes an in-process exactness assert possible, and therefore what SHADOW mode reports against."
+    },
+    {
+      "name": "hst_close",
+      "returns": "void",
+      "params": [{"name": "ctx", "type": "handle", "nullable": true}],
+      "doc": "Release a handle. Safe on NULL."
+    },
+    {
+      "name": "hst_version",
+      "returns": "cstring_return",
+      "params": [],
+      "doc": "Library version string, e.g. 'hstcore 1.4.0'. Static storage; never freed by the caller."
+    }
+  ],
+
+  "_semanticInvariants": [
+    "LANE INTERLEAVING is the single most commonly mis-bound detail: state[row*batch + b] and vals[i*batch + b], not lane-major. A binding that gets this wrong produces plausible numbers that are wrong, which is the failure class this estate has been bitten by repeatedly.",
+    "hst_state() returns a BORROWED pointer invalidated by the next mutating call. Every managed-language binding must copy.",
+    "hst_set_state and hst_set_input must be called TOGETHER or not at all.",
+    "Shadow and production applies must never share a handle."
+  ]
+}

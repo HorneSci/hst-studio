@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  hstcore-java — Maven build.
+
+  WHY THIS FILE EXISTS. The binding source has been complete since 2026-08-04:
+  thirteen symbols, Panama FFI, checked against oss/hstcore-abi/abi.json by
+  tests/test_abi_bindings.py. It was still unusable by anyone outside this
+  estate, because there was no build file, no README and nothing staged into the
+  public tree — only stale .class files in build/. A JVM shop could read the
+  source and could not depend on it.
+
+  NO DEPENDENCIES, deliberately. The boundary carries int32, double, size_t and
+  opaque pointers, all of which java.lang.foreign handles in the JDK. A binding
+  that dragged in a dependency tree would be a harder sell than the library it
+  binds.
+
+  JDK 22 IS THE FLOOR. java.lang.foreign left preview in 22 (JEP 454). On 21 or
+  earlier this does not compile, and the failure is a missing package rather
+  than anything that explains itself, so maven.compiler.release states it.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.hornesci</groupId>
+  <artifactId>hstcore</artifactId>
+  <version>1.4.0</version>
+  <packaging>jar</packaging>
+
+  <name>hstcore-java</name>
+  <description>
+    Java binding for the HST-core Embedded ABI (HSTCORE_1.4). Binds libhstcore, a
+    shared library this package does not contain -- Apache-2.0 and unmetered in an
+    HST Studio download's bin/, gated only in a separate metered build of the same
+    library; this package computes nothing on its own.
+  </description>
+  <url>https://github.com/HorneSci/hstcore-java</url>
+
+  <licenses>
+    <license>
+      <name>Apache-2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>HorneSci Research</name>
+    <url>https://hornesci.com</url>
+  </organization>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>22</maven.compiler.release>
+  </properties>
+
+  <build>
+    <sourceDirectory>src/main/java</sourceDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.4.1</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <!-- The ABI node this jar was written against. A jar and a library
+                   that disagree here is a stale build on one side or the other,
+                   and the binding says which in its error. -->
+              <Hstcore-Abi-Node>HSTCORE_1.4</Hstcore-Abi-Node>
+              <Hstcore-Symbol-Count>13</Hstcore-Symbol-Count>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

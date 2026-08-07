@@ -1,0 +1,27 @@
+relabel_seed,a,b,statistic,kind,point,boot_mean,ci_lo,ci_hi,excludes_null,n_operators,n_cells_a,n_cells_b,permutation_seeds
+101,native drift,relabelled drift,geomean margin,ratio,2.3737,2.389,1.9317,2.9006,1,21,418,418,4
+202,native drift,relabelled drift,geomean margin,ratio,2.3949,2.4099,1.9613,2.9184,1,21,418,418,4
+303,native drift,relabelled drift,geomean margin,ratio,2.4017,2.4152,1.9797,2.9228,1,21,418,418,4
+404,native drift,relabelled drift,geomean margin,ratio,2.3943,2.4097,1.9488,2.9304,1,21,418,418,4
+101,native drift,relabelled drift,win rate,difference,0.0766,0.0764,0.0,0.1643,0,21,418,418,4
+202,native drift,relabelled drift,win rate,difference,0.0909,0.0904,0.0214,0.1795,1,21,418,418,4
+303,native drift,relabelled drift,win rate,difference,0.1077,0.1069,0.0216,0.2105,1,21,418,418,4
+404,native drift,relabelled drift,win rate,difference,0.0813,0.0812,0.0072,0.1699,1,21,418,418,4
+none,native drift,jump,geomean margin,ratio,2.921,2.94,2.4328,3.4905,1,21,418,419,4
+none,native drift,jump,win rate,difference,0.253,0.2527,0.122,0.3986,1,21,418,419,4
+101,relabelled drift,jump,geomean margin,ratio,1.2306,1.2409,0.9782,1.5672,0,21,418,419,4
+202,relabelled drift,jump,geomean margin,ratio,1.2197,1.23,0.9698,1.5503,0,21,418,419,4
+303,relabelled drift,jump,geomean margin,ratio,1.2162,1.2275,0.9628,1.5595,0,21,418,419,4
+404,relabelled drift,jump,geomean margin,ratio,1.22,1.2308,0.9648,1.5588,0,21,418,419,4
+101,relabelled drift,jump,win rate,difference,0.1764,0.1763,0.081,0.2814,1,21,418,419,4
+202,relabelled drift,jump,win rate,difference,0.1621,0.1622,0.0716,0.2622,1,21,418,419,4
+303,relabelled drift,jump,win rate,difference,0.1453,0.1458,0.05,0.25,1,21,418,419,4
+404,relabelled drift,jump,win rate,difference,0.1716,0.1715,0.0791,0.2738,1,21,418,419,4
+101,over-corrected drift,jump,geomean margin,ratio,1.0658,1.0754,0.8369,1.3709,0,21,418,419,4
+202,over-corrected drift,jump,geomean margin,ratio,1.0486,1.0583,0.8222,1.3485,0,21,418,419,4
+303,over-corrected drift,jump,geomean margin,ratio,1.0244,1.0357,0.7964,1.3418,0,21,418,419,4
+404,over-corrected drift,jump,geomean margin,ratio,1.0593,1.0694,0.8266,1.3708,0,21,418,419,4
+101,over-corrected drift,jump,win rate,difference,0.0496,0.0495,-0.031,0.1452,0,21,418,419,4
+202,over-corrected drift,jump,win rate,difference,0.0305,0.0306,-0.0429,0.1163,0,21,418,419,4
+303,over-corrected drift,jump,win rate,difference,-0.015,-0.0137,-0.1238,0.0949,0,21,418,419,4
+404,over-corrected drift,jump,win rate,difference,0.0448,0.0449,-0.0369,0.1381,0,21,418,419,4

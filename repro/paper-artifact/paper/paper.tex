@@ -1,0 +1,2097 @@
+\documentclass{article}
+\usepackage[preprint]{neurips_2026}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{xcolor}
+
+\graphicspath{{figs/}}
+
+% A last-resort loosening pass, so that a paragraph carrying a long unbreakable
+% token (\texttt{} operator names, "leave-one-operator-out", inline intervals)
+% ends up with a slightly loose line instead of one that runs into the margin.
+\setlength{\emergencystretch}{3em}
+
+\definecolor{cexact}{HTML}{0072B2}
+\definecolor{cblock}{HTML}{D55E00}
+\definecolor{crouter}{HTML}{009E73}
+
+\title{How the Dirty Set Moves: A Benchmark for\\Delta-Input Sparse Matrix
+Multiplication}
+
+\author{%
+  Anonymous Authors\\
+  \texttt{}\\
+  % Submission version is anonymized. The camera-ready author block is held
+  % outside this artifact on purpose -- it ships publicly, so naming the authors
+  % here would de-anonymize the submission. Restore it at camera-ready from
+  % docs/PAPER_AUTHORS.md in the umbrella repo.
+}
+
+% Float placement. The stock limits leave at most one float per page and a
+% 20% text minimum, which in a paper with this float density pushed three
+% tables past their first reference and onto the last two pages.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.7}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.8}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+
+% Placeholder for a number whose measurement is still running. Renders in bold
+% brackets so it cannot survive a proof-read, and `make check` greps for it.
+\newcommand{\PENDING}[1]{\textbf{[PENDING: #1]}}
+
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A large class of numerical workloads applies a \emph{fixed} sparse operator $A$
+to a state that changes by a sparse increment each step, so the product can be
+maintained rather than recomputed: $A(x{+}dx) = Ax + A\,dx$. Power-flow solvers,
+circuit simulators, and implicit FEM codes all have this shape. Established
+sparse suites time a single product against a static operand and therefore
+cannot see it. We define delta-input SpMM as a benchmarkable task and supply a
+benchmark: 21 SuiteSparse operators, a dirty column set of fixed size that moves
+between steps, a churn rate $\rho$, five seeds, and two \emph{motion models}
+differing only in where the replacement columns come from --- structural
+neighbours of the survivors under \emph{local drift}, a fresh uniform draw under
+\emph{uniform jump} --- with a mixing parameter making them endpoints of one axis.
+
+\textbf{The motion model, not the operator's structure or the churn rate alone,
+decides what the benchmark measures.} Under local drift a block-scheduled delta
+is the faster arm in 418 of 418 churning cells; under uniform jump, at the same
+operators, the same $|D|$, the same $\rho$ and the same seeds, it is faster in
+313 of 419 and arm selection becomes a real problem --- though a second,
+independently written block-scheduled implementation wins 395 of 419 there, so
+part of that selection problem belongs to one implementation rather than to the
+family. The same switch changes what
+a global row merge is worth ($2.87\times$ against $1.74\times$ at $\rho \geq
+0.01$) and the size of the gap between the two implementation families. A
+control separates the two localities confounded in that contrast: under a random
+symmetric relabelling, which preserves the graph and the structural trajectory
+and destroys index locality, the block-scheduled arm wins 306--386 of 418 at
+$1.97$--$2.37\times$ rather than $5.62\times$ over four permutations. Index
+locality is doing real work, a median $2.39\times$ $[1.93, 2.93]$ excluding $1$
+in all four; whether motion locality contributes beyond it is not resolved at 21
+operators.
+
+We report four results that a benchmark of this kind needs and that this one
+initially lacked. \textbf{A family claim needs more than one member per family},
+so we write and release an open block-scheduled reference arm against our own
+externally-visible description of the strategy: it reproduces the dichotomy
+independently --- losing on a frozen set and winning 418 of 418 churning cells
+under local drift, the same count the proprietary arm reaches --- and makes the
+merge result --- previously
+derived from schedules only a closed implementation builds --- an integer
+identity a reader can recompute. \textbf{A motion model needs evidence that
+anything moves that way}, so we instrument two solvers and read the dirty set off
+solver state rather than generating it: transient propagation lands on the
+local-drift endpoint exactly ($\alpha_{\text{emp}} = 0.000$ on all nine
+operators, at $\rho_{\text{emp}} \approx 0.008$), while Newton convergence sits
+near the middle of the axis at ten times the churn ($\alpha_{\text{emp}} \approx
+0.44$, $\rho_{\text{emp}} \approx 0.27$) --- supporting the regime claim for
+time-stepping workloads and withdrawing it for iterative solves.
+And \textbf{a delta benchmark will silently charge one family for work the other
+never does}: we found two such taxes pointing in opposite directions, one an
+$M{\times}B$ zero-fill inside session construction that changed the sign of an
+aggregate comparison when removed, the other a change-detection cost $29\times$
+more expensive on one side than the other for the same question.
+Finally, \textbf{two conditions that differ in the intended variable may also
+differ in how much work there is}: uniform jump destroys locality and separately
+shrinks the dirty slice to $0.415\times$ its starting nonzeros, so a third motion
+model that holds the work while destroying locality raises the uniform-jump
+margin by $1.58\times$ and makes every drift-versus-jump contrast here an upper
+bound.
+
+Where selection does exist, the win belongs to a model-\emph{selection}
+procedure rather than to any single model named in advance: fitted offline it
+beats an online policy that probes both arms on geomean regret by $0.044$--$0.078$
+in all three scopes carrying a live decision, while a pre-registered logistic
+regression loses to the policy on two of them. A short cost model explains why
+the one structural predictor tried had to fail --- it prices the apply and says
+nothing about re-preparation, which is the only half the motion model touches.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Sparse matrix--vector and matrix--matrix products are among the most heavily
+benchmarked kernels in scientific computing. The standard measurement is
+one-shot: load an operator, apply it once to a dense operand, report bandwidth
+or FLOP rate. That protocol assumes the operand is unrelated to the previous
+one.
+
+A great many real solvers violate that assumption in the same way. The operator
+is a discretization or a network admittance matrix and does not change; the
+state does, and it changes locally. A contingency analysis perturbs a handful of
+buses. A circuit simulator's Newton step updates the nodes that have not yet
+converged. An implicit FEM solve reloads a region under a moving load. In each
+case $x_{t+1} = x_t + dx_t$ with $dx_t$ supported on a small set $D_t$ of
+columns, and the product can be maintained rather than recomputed
+(Figure~\ref{fig:task}).
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\linewidth]{fig_task}
+  \caption{The delta-input SpMM task. $A$ is fixed across steps; the state
+  changes by a sparse increment supported on a dirty column set $D$. The
+  incremental product costs $\mathrm{nnz}(A[:,D])$ rather than
+  $\mathrm{nnz}(A)$, but only if the implementation can restrict itself to $D$
+  without re-preparing itself whenever $D$ changes.}
+  \label{fig:task}
+\end{figure}
+
+The arithmetic saving is not what makes this hard. A delta implementation must
+\emph{prepare} itself for a particular dirty set, and preparation is expensive
+relative to a step. When $D$ is stable, preparation amortizes. When $D$ moves,
+preparation may have to be redone, and the implementation that was fastest on a
+frozen set can become the slowest. No sparse benchmark we are aware of varies
+the dirty set, so none of them can express this trade-off.
+
+Varying it exposes a second variable that is easy to miss. Two workloads can
+agree on the operator, on $|D|$, on the churn rate $\rho$, and on the random
+seed, and still disagree about which implementation is faster, because they
+disagree about \emph{where the replacement columns come from}. We call that
+choice the motion model. It decides the size of the opportunity, whether an
+implementation-selection problem exists at all, and what a particular schedule
+optimization is worth.
+
+\paragraph{Contributions.}
+\begin{enumerate}
+\itemsep2pt
+\item \textbf{A task definition and benchmark} (\S\ref{sec:bench}). Delta-input
+SpMM with a moving dirty set: 21 SuiteSparse operators from power flow, circuit
+simulation and structural FEM; two motion models and a mixing parameter that
+interpolates between them; five churn rates including $\rho{=}0.002$; five
+dirty-set seeds; an open and deliberately strong baseline; and a five-part
+metric protocol (\S\ref{sec:metrics}) that makes amortization assumptions
+impossible to leave implicit.
+\item \textbf{The motion model separates the space} (\S\ref{sec:families}).
+Under local drift the block-scheduled arm is faster in 418 of 418 churning
+cells and the alternative class is empty. Under uniform jump it is faster in 313
+of 419 and both classes are populated. The operator set, $|D|$, $\rho$ and the
+seeds are identical; only the motion differs.
+\item \textbf{Motion locality and index locality, separated}
+(\S\ref{sec:control}). A control that destroys index locality while holding the
+graph and the structural trajectory fixed, replicated over four independent
+permutations, costs the margin a median $2.39\times$ $[1.93, 2.93]$ and 32--45
+of 418 cells, and $1.97$--$2.05\times$ at a bound that
+over-corrects for the baseline's own relabelling penalty; destroying motion
+locality costs $2.92\times$ $[2.43, 3.49]$ and 105 cells. Ranking the two
+against each other is a $1.02$--$1.23\times$ contrast whose interval covers $1$
+in every permutation, and we report it as unresolved rather than as a result. The mixing parameter
+turns the dichotomy into a curve, and most of the fall has happened by
+$\alpha{=}0.25$.
+\item \textbf{What a merged schedule is worth is a property of the motion}
+(\S\ref{sec:merge}), measured on 21 operators and five seeds, with two
+counter-examples reported.
+\item \textbf{Selection, and what it needs to observe} (\S\ref{sec:select},
+Appendix~\ref{sec:amortize}). Under local drift there is nothing to select. Under
+uniform jump there is, and an offline model-selection procedure beats an online
+policy that probes both arms; no single pre-registered model does.
+\item \textbf{A negative result with a named mechanism} (Appendix~\ref{sec:patch}), and
+\textbf{a measurement-methodology result} (\S\ref{sec:defect}).
+\end{enumerate}
+
+\section{Background and related work}
+\label{sec:related}
+
+\paragraph{Sparse kernel benchmarks.}
+The SuiteSparse Matrix Collection~\citep{davis2011} is the standard operator
+source, and the surrounding benchmark literature --- SpMV performance
+studies~\citep{williams2007, vuduc2003}, format autotuning~\citep{im2004},
+graph-kernel suites~\citep{beamer2015}, and vendor suites --- measures the
+one-shot product. The operand is arbitrary and its relationship to the previous
+operand is not part of the workload. These suites cannot distinguish an
+implementation that is fast per step from one that is fast per step \emph{and}
+cheap to re-prepare, which is the distinction that decides the problem studied
+here.
+
+\paragraph{Sparse compilers.}
+Sparse tensor compilers generate a kernel from an index expression and a chosen
+format~\citep{kjolstad2017, ye2023}, and a scheduling language decides the loop
+order and blocking. The compiled artifact of Section~\ref{sec:families} is a
+degenerate instance: one compiled segment per column-tile is a scheduling
+decision that these systems could express. What they do not model is the cost of
+\emph{re}-compiling when the sparsity of the operand changes, because their
+compilation is indexed by the operator's format and not by which columns are
+live this step. That is the axis this benchmark varies, and it is orthogonal to
+the code-generation quality those systems optimize --- a point worth stating
+plainly, because the two are easy to conflate: a better generated kernel helps
+both families here equally.
+
+\paragraph{Incremental and streaming computation.}
+Incremental view maintenance~\citep{gupta1995} and its higher-order delta
+treatment in DBToaster~\citep{koch2014}, self-adjusting
+computation~\citep{acar2002, acar2005}, differential
+dataflow~\citep{mcsherry2013}, and dynamic graph
+algorithms~\citep{demetrescu2004} all treat the same underlying idea ---
+recompute only what changed. Self-adjusting computation and differential
+dataflow are the closest in spirit, since both maintain a dependence structure
+and repair it when inputs move; the difference is that they repair a general
+dataflow and pay a per-change bookkeeping cost, where a delta schedule is a flat
+array over one fixed operator and the whole question is what re-preparing that
+array costs. Streaming graph containers --- STINGER~\citep{ediger2012},
+Aspen~\citep{dhulipala2019}, GraphOne~\citep{kumar2020},
+Terrace~\citep{pandey2021} --- do vary an update stream, but the thing that
+changes there is the \emph{operator}, and the batch is scored on ingestion
+throughput. Here the operator is fixed and the operand moves, which is the
+opposite decomposition. GraphBLAS~\citep{davis2019, buluc2017, graphblas2023}
+exposes masked operations that can express a restriction to $D$. We measured
+it rather than asserting anything about it, and the result is in
+\S\ref{sec:baselines}: the delta form is not the object of study there, and it
+shows. We are
+not aware of a benchmark in any of these communities that varies the stability
+of the changed set, let alone the manner of its movement.
+
+\paragraph{Updating a factorization instead of a product.}
+The classical answer to ``the operand changed a little'' is not to redo the
+product at all but to update a factorization or an inverse by a low-rank
+correction~\citep{sherman1950, hager1989, golub2013}. That is a different task
+and it is worth saying why it is not a baseline here. Sherman--Morrison and its
+descendants update $A^{-1}$ or a factorization of $A$ when \emph{$A$} changes by
+a low-rank term; the workload studied here holds $A$ fixed and changes $x$. The
+product $A\,dx$ with $dx$ sparse is already the cheapest correct form, so there
+is no factorization to amortize --- the whole cost is deciding which entries of
+$A$ to touch and how to reach them.
+
+\paragraph{Kernel selection and autotuning.}
+Selecting a sparse format or kernel from matrix features is a well-developed
+line of work, usually as offline supervised learning~\citep{li2013,
+sedaghati2015, zhao2018}, and usually evaluated by classification accuracy with
+random train/test splits. Section~\ref{sec:select} argues that both of those
+choices are wrong for this problem: random splits leak operator identity, and
+accuracy is the wrong loss when the penalty for a mistake spans an order of
+magnitude and a large share of the labels sits inside the measurement floor.
+Online alternatives --- bandit-style selection and profile-guided dispatch ---
+are the natural comparison, and the policy we evaluate is a simple instance of
+that family.
+
+\section{The benchmark}
+\label{sec:bench}
+
+\subsection{Task}
+
+Fix a sparse $A \in \mathbb{R}^{N\times M}$. At each step $t$ the caller
+supplies a dirty column set $D_t \subseteq \{1,\dots,M\}$ and a dense block
+$dx_t \in \mathbb{R}^{|D_t| \times B}$, and requires
+\[
+  dy_t \;=\; A[:,D_t]\,dx_t \;\in\; \mathbb{R}^{N\times B},
+\]
+exactly, in floating point, to the accuracy a direct evaluation would give. $B$
+is the batch width. An implementation may perform arbitrary preparation, may
+cache it across steps, and is charged for all of it. Sequences are long: the
+regime of interest is thousands of steps against one operator, which is what
+makes preparation worth doing and also what makes stale preparation worth
+avoiding.
+
+\subsection{Motion models}
+\label{sec:motion}
+
+The dirty set is the workload. We generate $D_0$ by breadth-first search from a
+random seed column over the operator's own adjacency, giving a connected
+neighbourhood of a requested size --- the structural counterpart of a local
+disturbance. At each subsequent step a fraction $\rho$ of $D_t$ is retired.
+$|D|$ is held constant, so the same number of columns is added back, and the
+motion model is the rule that chooses them (Figure~\ref{fig:workload}):
+
+\begin{itemize}
+\itemsep1pt
+\item \textbf{local drift} refills from the structural neighbourhood of the
+survivors, so the set migrates through the topology;
+\item \textbf{uniform jump} redraws uniformly from every live column, so the set
+scatters;
+\item \textbf{mix($\alpha$)} draws a fraction $\alpha$ of each step's
+replacements uniformly and the rest from the neighbourhood, so local drift and
+uniform jump are $\alpha{=}0$ and $\alpha{=}1$ of one axis. Both endpoints
+delegate to the same functions with the same arguments and therefore the same
+draws, so a mix run at $\alpha \in \{0,1\}$ reproduces the corresponding drift
+or jump run trajectory for trajectory rather than in distribution.
+\end{itemize}
+
+We sweep $\rho \in \{0, 0.002, 0.01, 0.05, 0.25\}$ over five dirty-set seeds.
+$\rho{=}0$ is the frozen set that informal measurements of this idea implicitly
+assume; it is a special case rather than the default, and it is the identity
+for both motion models, which makes the two $\rho{=}0$ blocks the same workload
+measured twice and therefore a usable noise floor (\S\ref{sec:limits}).
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\linewidth]{fig_workload}
+  \caption{The two motion models on one fixed topology, at each churn rate.
+  Both retire the same fraction of the dirty set per step and hold $|D|$
+  constant; they differ only in where the replacements come from. Fixed
+  topology is what makes the operator reusable, and the disturbed region is
+  what a delta implementation must track. They are not the same thing, and
+  \S\ref{sec:families}--\S\ref{sec:select} are organized around the gap.}
+  \label{fig:workload}
+\end{figure}
+
+$\rho$ is a rate and it quantizes. Three of the 1050 measured cells carry a
+label $\rho > 0$ but never move their dirty set, because $\lceil \rho|D|
+\rceil$ rounds to zero or the retired column is immediately re-added; all three
+are one operator at one seed whose BFS returns 138 columns where every other
+seed returns 256. They are frozen cells wearing a churn label and are excluded
+from the churning population, with the excluded keys reported rather than
+absorbed. That leaves 418 churning cells under local drift and 419 under uniform
+jump, against 105 frozen cells each.
+
+Two controls bracket the model and are reported alongside it: \texttt{contiguous}
+(a best case for any blocked layout) and \texttt{scattered} (uniformly random
+columns, a worst case). Neither is realistic; both exist so that a submission
+cannot be tuned to the neighbourhood generator without the effect being visible.
+
+\paragraph{A third model, measured and withdrawn.}
+We also measured a \texttt{cyclic} model that rotates through a small ring of
+recurring dirty sets. It is not reportable and no number from it appears in this
+paper. The ring is 4--5 distinct sets wide; one arm caches eight prepared sets
+and the other caches one, so every \texttt{cyclic} ratio restates that pair of
+integers rather than anything about the workload. It becomes reportable when the
+baseline arm gains a multi-entry cache, and not before.
+
+\subsection{Do real solvers actually drift?}
+\label{sec:realmotion}
+
+Everything downstream is conditioned on a motion model, and the argument that
+local drift is the realistic one is made in \S\ref{sec:intro} by assertion: a
+disturbance propagates through a fixed topology along that topology. Both models
+in \S\ref{sec:motion} are generators. \texttt{drift} refills from a BFS
+neighbourhood because it was told to and \texttt{jump} redraws uniformly because
+it was told to; neither is an observation, and the realism claim is doing enough
+work here that it should not rest on one.
+
+We therefore produce dirty sets that nobody chose. Two solvers run on the same
+SuiteSparse topologies, and at each step the dirty set is read off the solver
+state --- the $|D|$ unknowns that moved most --- rather than generated. Holding
+$|D|$ fixed at the benchmark's own 256 is deliberate: a threshold instead makes
+the answer an artifact of the threshold, and on a diffusion with a held source
+the disturbed region grows monotonically, nothing ever retires, and the measured
+churn rate is identically zero.
+
+\texttt{transient} steps an implicit linear diffusion on the operator's own
+graph after a pulse disturbance at one node --- the shape a linearized swing
+equation, an RC ladder and heat conduction all share, and the ``contingency
+perturbs a handful of buses'' workload of \S\ref{sec:intro}. Nothing places the
+resulting front; where it goes is whatever solving says. \texttt{newton} runs
+Newton--Raphson on a nonlinear system with the same sparsity, where the dirty
+set is the set of unknowns not yet converged --- the ``circuit simulator updates
+the nodes that have not yet converged'' workload, and a structurally different
+mechanism.
+
+Each trajectory is then scored on the paper's own axis: $\rho_{\text{emp}}$, the
+fraction of the dirty set that turned over, and $\alpha_{\text{emp}}$, the
+fraction of \emph{arriving} columns that were not structural neighbours of the
+previous set. $\alpha_{\text{emp}}$ is exactly the mixing parameter of
+\S\ref{sec:motion}, measured instead of set.
+
+\paragraph{Result.} Over nine operators drawn from the three domains
+\S\ref{sec:intro} names, five seeds and 200 steps each:
+
+\begin{itemize}\itemsep2pt
+  \item \texttt{transient}: $\alpha_{\text{emp}} = 0.000$ on \emph{all nine}
+    operators --- median and range alike --- at $\rho_{\text{emp}}$ median
+    $0.0078$ (range $0.0039$--$0.0156$). Every arriving column is a structural
+    neighbour of a surviving one, and the set turns over at four to sixteen
+    columns in a thousand per step.
+  \item \texttt{newton}: $\alpha_{\text{emp}}$ median $0.439$ (range
+    $0.067$--$0.787$) at $\rho_{\text{emp}}$ median $0.2695$ (range
+    $0.078$--$0.496$). Nearly half the arrivals are unrelated to the survivors,
+    and the set turns over an order of magnitude faster.
+\end{itemize}
+
+Transient propagation therefore lands exactly on the local-drift endpoint of the
+axis, and at the churn rate the headline regime occupies: $\rho \approx 0.008$
+sits between the benchmark's $\rho{=}0.002$ and $\rho{=}0.01$ rows, where
+\S\ref{sec:families} measures $5.65$ and $5.39\times$ for the open reference arm. That is the first
+measurement behind a claim this paper previously made by assertion, and it is a
+stronger result than we expected --- not ``mostly local'' but $\alpha = 0$ on every
+operator tried.
+
+Newton convergence does not. At $\alpha \approx 0.44$ and $\rho \approx 0.27$ it
+sits near the middle of the mixing axis at its highest churn rate, which is
+where \S\ref{sec:mixing} shows most of the block-scheduled advantage has already
+decayed. The two solvers do not agree, and that is the finding: transient propagation sits at the local-drift end of the axis at low
+churn, which is the regime the headline occupies, while Newton convergence does
+not --- its dirty set both churns faster and arrives further from the survivors.
+Section~\ref{sec:intro} names power flow, circuit simulation and implicit FEM
+together as workloads that drift; on this evidence that is right for the
+time-stepping ones and wrong for the iterative-solve one, and the paper's regime
+claim should be read as being about the former.
+
+\paragraph{What this is and is not.} These are dirty sets produced by a solve on
+a real topology with a real sparsity pattern, rather than by a rule. They are
+not traces captured from a production energy-management system, a commercial
+circuit simulator, or a deployed FEM code: the forcing is synthetic and the
+nonlinearity in \texttt{newton} is chosen rather than measured. What they
+establish is the weaker but load-bearing claim that \S\ref{sec:intro} previously
+asserted with no evidence at all --- that on a fixed topology, a propagating
+disturbance produces a dirty set whose arrivals are overwhelmingly structural
+neighbours of its survivors. A trace from a deployed solver remains the right
+next measurement, and we do not have one.
+
+\subsection{Operators}
+
+Twenty-one SuiteSparse operators, chosen to span the domains where the task
+arises rather than to flatter any implementation, and including shapes expected
+to be hostile: power flow (\texttt{TSOPF}$\times 3$, \texttt{case9}), power
+networks (\texttt{bcspwr09/10}), circuit simulation (\texttt{scircuit},
+\texttt{memplus}, \texttt{add32}, \texttt{circuit\_3}, \texttt{rajat03}), device
+simulation (\texttt{wang3}), and structural and shell FEM (\texttt{ct20stif},
+\texttt{bcsstk18/25}, \texttt{msc10848}, \texttt{nasa2910}, \texttt{s3rmt3m3},
+\texttt{olafu}, \texttt{raefsky3}, \texttt{epb2}). Sizes span $N=1{,}723$ to
+$170{,}998$ and $\mathrm{nnz}=6{,}511$ to $2{,}600{,}295$; $|D|$ is 256 except
+where BFS returns fewer, down to 138. Table~\ref{tab:operators} lists them with
+results.
+
+\subsection{Baselines}
+\label{sec:baselines}
+
+A delta kernel can be made to look arbitrarily good by comparing it against a
+weak delta. Table~\ref{tab:baselines} is the ladder we measured.
+
+\begin{table}[tbp]
+  \centering
+  \caption{The baseline ladder: geomean ms/step over the ten configurations
+  (five operators $\times$ two orderings) for which all rungs were measured,
+  $B{=}8$. The benchmark reports against the \emph{bottom} rung. Choosing a rung
+  near the top inflates any delta implementation by one to two orders of
+  magnitude, and doing so silently is the most common defect we found in our own
+  earlier measurements.}
+  \label{tab:baselines}
+  \small
+  \input{tab_baselines}
+\end{table}
+
+The reference baseline is a \textbf{column-exact CSR delta}: for the current $D$
+it compiles a compressed row list holding exactly the nonzeros of $A[:,D]$,
+templated on batch width and optionally threaded. It is open source and is not
+our product; we invested in making it strong because a benchmark whose baseline
+is weak measures nothing. A naive PyTorch delta that re-slices $A[:,D]$ each
+step is slower than recomputing the whole product ($3.331$ vs $1.234$~ms): the
+obvious way to write this inside a framework is a pessimization.
+
+\paragraph{GraphBLAS, measured.}
+GraphBLAS~\citep{davis2019, graphblas2023} is the system in the literature
+closest to this task, so we put it on the ladder rather than describing it.
+SuiteSparse:GraphBLAS through \texttt{python-graphblas} 2025.2.0, one thread,
+on the ladder's own ten configurations, geomean ms/step at $B{=}8$:
+
+\begin{itemize}\itemsep2pt
+  \item $A \, dx$ with $dx$ a sparse operand populated only on the dirty rows ---
+    the formulation that most directly says ``the operand is a delta'' ---
+    $8.04$~ms, $473\times$ our baseline.
+  \item $A \, dx$ with a dense operand, the formulation \S\ref{sec:related}
+    describes: $3.72$~ms, $219\times$.
+  \item Extracting $A[:, D]$ each step and multiplying: $2.31$~ms, $136\times$.
+    This is the best of the three that are legal for a moving dirty set.
+  \item The same extract hoisted out of the loop --- legal only on a
+    \emph{frozen} set, so not comparable with any churning cell here, and
+    reported to show what GraphBLAS costs when re-preparation is free:
+    $0.38$~ms, $22\times$.
+\end{itemize}
+
+Two things are worth separating in that. The mask-on-a-full-traversal reading is
+supported --- the dense-operand form is $219\times$ --- but it is not the whole
+story, because the formulation that \emph{does} restrict to $D$ is still
+$136\times$, and hoisting the restriction away entirely still leaves $22\times$.
+The gap is not mainly about mask semantics; it is that a general runtime for sparse linear
+algebra carries per-call machinery this task cannot amortize.
+
+The honest caveats: this is measured through the Python binding, so some of the
+per-step cost is binding overhead a C caller would not pay, and we did not
+attempt to tune descriptors. We report it as evidence that the delta form is not
+what this ecosystem is built for, not as a tuned comparison, and every
+formulation agrees with a direct evaluation to $3.5 \times 10^{-16}$.
+
+\paragraph{End-to-end comparison.}
+For a practitioner writing this inside a framework today, adopting the
+benchmark's best configuration is worth $8.8\times$/$15.2\times$/$22.9\times$ at
+$B{=}1$/$8$/$16$, geomean over the same ten configurations. Most of that
+is leaving the framework rather than choosing between delta implementations: the
+open baseline alone is $22.7\times$ faster than the best in-framework delta
+(Table~\ref{tab:baselines}). Everything after \S\ref{sec:families} concerns the
+residual factor.
+
+Two independently written harnesses measured the hand-written CSC delta on the
+same operators and configurations; their timings agree to within $0.1$--$12.6\%$
+per configuration (e.g.\ \texttt{TSOPF} under RCM: $1.5740$ vs $1.5752$~ms), which
+we take as a weak but real check on the timing methodology.
+
+\subsection{Metrics}
+\label{sec:metrics}
+
+Every cell reports all five numbers, including cells where the system under test
+loses. The protocol exists because each of the first four can be made to look
+good alone.
+
+\begin{enumerate}
+\itemsep1pt
+\item \textbf{Steady-state cost per step} with preparation amortized.
+\item \textbf{One-shot cost}: a single application including all preparation.
+\item \textbf{Breakeven step count}: how many steps before (2) is repaid.
+\item \textbf{Cost under churn} at each $\rho$ and each motion model, with
+re-preparation charged where it falls.
+\item \textbf{Maximum relative error} against a direct evaluation.
+\end{enumerate}
+
+\paragraph{Aggregation, stated once.}
+Ratios are reported as the median across the five dirty-set seeds within an
+(operator, $\rho$) cell, then the geometric mean over operators. Per-cell win
+counts are reported separately and are counts of cells, not of operators. Local
+drift is never averaged into uniform jump anywhere in this paper.
+
+Frozen and churning cells are averaged into one another only in a scope that is
+named a \emph{workload mixture} at every appearance, and never silently. Two of
+the three scopes that carry a live selection decision (\S\ref{sec:contrast}) are
+such mixtures, so this is not a corner case: the mixture is where $\rho$ has any
+variance at all, and therefore the only scope in which ``is the churn rate the
+decisive variable'' is a well-posed question. It is also the scope in which the
+decision is dominated by a trivial gate at $\rho{>}0$, which
+\S\ref{sec:select} and \S\ref{sec:contrast} report rather than hide. Every number
+below names its regime --- frozen, churning, or the mixture --- its motion
+model, and its $n$.
+
+\section{Two implementation families}
+\label{sec:families}
+
+Delta implementations divide by \emph{what they prepare for}, and that choice
+fixes both their per-step cost and when they must re-prepare. A column-exact
+implementation prepares for exactly $D$, so it touches no wasted entries but must
+re-prepare whenever $D$ changes at all. A block-scheduled implementation prepares
+per block-column, so it scans padding --- a geomean $1.65\times$ more entries
+than needed on the ten-configuration ladder --- but survives movement that stays
+inside the blocks it already covers.
+
+\paragraph{Three systems, so that a family claim has more than one member.}
+Two implementations cannot establish a claim about two families: every
+difference would be confounded with every other engineering difference between
+one open C++ header and one closed runtime. We therefore measure \emph{three}.
+
+The column-exact arm is our open baseline. The block-scheduled arm is a
+proprietary system that we characterize only by its measured cost profile:
+per-step cost, re-preparation frequency as a function of $\rho$ and of the
+motion model, and re-preparation cost. Its internal data structures are not
+disclosed and are not required by anything we claim.
+
+The third is an \textbf{open block-scheduled reference arm}, written for this
+paper against the externally-visible strategy stated above and nothing else, and
+released with the benchmark. It shares no source with the proprietary arm, and
+two of its choices differ on purpose so that a result which reproduces on it is a
+property of the strategy rather than of one codebase: its dx scratch is
+tile-local rather than $M$-wide, so it cannot incur the session-construction tax
+of \S\ref{sec:defect} at all, and its compiled segments are position-independent,
+so its preparation cache never invalidates --- the strongest form of the family's
+``survives movement'' property, which gives the block-scheduled side the benefit of
+the doubt. It is not tuned to win. Its purpose is falsification: if the
+dichotomy below did not appear on it, \S\ref{sec:families} would be a statement
+about one product and this paper would have to say so.
+
+It also carries \S\ref{sec:merge}, which measures what a globally row-merged
+schedule is worth. That section's row counts previously came from schedules only
+the closed arm builds, and were the one part of this paper not reproducible from
+the artifact at all; the reference arm emits both a per-tile and a merged form,
+so the quantity is now an integer identity a reader can recompute.
+
+The benchmark of \S\ref{sec:bench} is defined without reference to any arm, and
+the selection policy of \S\ref{sec:select} treats all of them as black boxes.
+Section~\ref{sec:limits} states what remains closed and
+\S\ref{sec:artifact} describes what we release.
+
+\paragraph{Frozen dirty set.}
+On a frozen dirty set the column-exact baseline is the better arm. The
+block-scheduled arm reaches $0.49$/$0.58$/$0.59$ of it at $B{=}1$/$8$/$16$ over
+the ten-configuration ladder (Figure~\ref{fig:frozen}, left). Over the
+21-operator sweep at $B{=}8$ it is the better arm in 3 of 105 frozen cells under
+local drift and 5 of 105 under uniform jump, and in each case it is at parity
+rather than past it.
+
+Padding largely accounts for that margin and does not close it
+(Figure~\ref{fig:frozen}, right). Across the 21 operators the correlation
+between padding and frozen slowdown is $+0.94$ (drift) and $+0.93$ (jump), but
+the per-operator residual --- slowdown divided by padding --- spans
+$0.99$--$1.83\times$. \texttt{raefsky3} pads $1.00\times$ and still loses
+$1.38\times$; \texttt{add32} pads $1.52\times$ and loses $2.78\times$. At
+$B{=}1$ the ladder's gap is $2.04\times$ against $1.65\times$ padding. So the
+block-scheduled arm's best possible frozen result is a tie, reached only where
+padding vanishes, and the gap it actually pays is wider than padding alone
+predicts by up to $1.8\times$. We did not isolate the remainder.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\linewidth]{fig_frozen}
+  \caption{Frozen dirty set. Left: the ratio at three batch widths over the ten
+  configurations for which all batch widths were measured; the thick line is the
+  geomean. Right: per-operator frozen slowdown against padding on the
+  21-operator sweep, one point per operator per motion model, median over five
+  seeds. The dashed line is what padding alone would predict. This is the half
+  of the picture a one-shot benchmark can see, and on its own it would retire
+  block scheduling as an idea.}
+  \label{fig:frozen}
+\end{figure}
+
+\paragraph{Moving dirty set.}
+Once the set moves the ordering reverses, and by how much depends on the motion
+model. At $\rho{=}0.002$ --- two columns in a thousand --- the column-exact arm
+must recompile, and recompilation costs tens of steps; the block-scheduled arm
+re-prepares only for blocks it has not already covered. Under local drift the
+geomean of always-block-scheduled over always-column-exact is $6.94\times$ at
+$\rho{=}0.002$ and stays above $4.7\times$ through $\rho{=}0.25$; under uniform
+jump it opens at $2.95\times$ and decays to $1.35\times$ (21 operators, five
+seeds). Figure~\ref{fig:churn} plots the better arm rather than a fixed one, so
+its curves read $6.94 \to 4.74$ and $2.97 \to 1.54$. What the decay measures is
+block reuse: uniform redraw destroys the reuse the block-scheduled arm depends
+on and local drift preserves it.
+
+The uniform-jump half of that comparison is an \emph{upper bound} on what
+destroying locality costs, not an estimate of it. Uniform redraw also shrinks the
+dirty slice's nonzero count --- to $0.415\times$ its starting value over 400
+steps, against $0.818\times$ under drift --- which helps the column-exact arm
+more than the block-scheduled one, whose cost has a floor set by the tiles it
+must scan. Holding the work constant and destroying only locality raises the
+uniform-jump margin by $1.58\times$ (\S\ref{sec:limits}). Every uniform-jump
+figure in this paper is the uncorrected one.
+
+\begin{figure}[tbp]
+  \centering
+  \begin{subfigure}{0.46\linewidth}
+    \includegraphics[width=\linewidth]{fig_churn_response}
+    \caption{Margin of the better arm over the baseline against $\rho$.}
+    \label{fig:churn}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.50\linewidth}
+    \includegraphics[width=\linewidth]{fig_heatmap}
+    \caption{Which arm wins, and by how much, for every operator $\times$ churn
+    rate. Blue is column-exact, orange block-scheduled.}
+    \label{fig:heatmap}
+  \end{subfigure}
+  \caption{The same operators, the same $|D|$, the same $\rho$ and the same
+  seeds under both motion models. The local-drift panel of
+  Figure~\ref{fig:heatmap} has no blue cell at any $\rho>0$; the uniform-jump
+  panel keeps a real mixture.}
+\end{figure}
+
+\paragraph{The dichotomy reproduces on an independently written arm.}
+Everything above is measured on the proprietary arm, so it establishes a
+property of one system. We re-measure with the open reference arm added as a
+third lane, under the same generator, the same $|D|$, the same seeds and the
+same 400 steps.
+
+\textbf{This is a separate sweep and its numbers are not interchangeable with
+the ones above.} It runs five lanes rather than four, rotates lane order by step
+rather than holding it fixed, and detects a moved tile set with the $O(|D|)$
+check of \S\ref{sec:defect} rather than the one the main sweep used. The
+proprietary arm therefore reads differently in it, and both arms are quoted from
+it below so that the comparison is within one file. Table~\ref{tab:family} gives
+both.
+
+\begin{table}[tbp]
+  \centering
+  \caption{The three-arm sweep: 21 operators, five seeds, 400 steps, $B{=}8$,
+  one thread, churn-labelled cells that never moved excluded. Both
+  block-scheduled arms are measured in the same run against the same
+  column-exact baseline; the main sweep's figures for the proprietary arm
+  (\S\ref{sec:families}, above) come from a different harness and are not
+  comparable cell by cell.}
+  \label{tab:family}
+  \small
+  \begin{tabular}{llrrrr}
+    \toprule
+    & & \multicolumn{2}{c}{\emph{local drift}} & \multicolumn{2}{c}{\emph{uniform jump}} \\
+    \cmidrule(lr){3-4}\cmidrule(lr){5-6}
+    arm & regime & cells won & geomean & cells won & geomean \\
+    \midrule
+    open reference & frozen    & 5/105   & $0.37\times$ & 10/105  & $0.38\times$ \\
+    proprietary    & frozen    & 0/105   & $0.41\times$ & 3/105   & $0.42\times$ \\
+    \addlinespace
+    open reference & churning  & \textbf{418/418} & $5.20\times$ & \textbf{395/419} & $2.08\times$ \\
+    proprietary    & churning  & 399/418 & $4.45\times$ & 237/419 & $1.39\times$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\linewidth]{fig_family}
+  \caption{Two implementations of one strategy against the shared column-exact
+  baseline, geomean over 21 operators, median across five seeds, churn-labelled
+  cells that never moved excluded. The open reference arm was written against
+  this paper's prose and shares no code with the proprietary one. What matters
+  is that the curves keep the same shape under local drift: the frozen loss, the
+  churning win and the direction of the decay are properties of the strategy.
+  Where they separate --- uniform jump, at every churn rate --- is where a claim
+  is about a product rather than a family, and it is the scope
+  \S\ref{sec:select} operates in.}
+  \label{fig:family}
+\end{figure}
+
+Read down the table, the shape is the same for both: a frozen loss of about
+$0.4\times$, a churning win under local drift on essentially every cell, and a
+smaller churning win under uniform jump. Read across, the open arm is ahead
+everywhere the set moves. The frozen loss, the churning win, the ordering of the
+two motion models and the direction of the decay along each are therefore
+properties of the strategy rather than of one codebase, which is what the
+control was built to establish (Figure~\ref{fig:family}).
+
+Within this sweep the open arm's local-drift curve runs $5.65 / 5.39 / 4.88 /
+4.94\times$ across $\rho \in \{0.002, 0.01, 0.05, 0.25\}$ and the proprietary
+arm's runs $5.82 / 4.89 / 3.75 / 3.69\times$: they start together and separate as
+churn rises. Under uniform jump they are $2.93 / 2.20 / 1.80 / 1.62\times$
+against $2.07 / 1.48 / 1.16 / 1.04\times$.
+
+What does \emph{not} transfer between sweeps is the level. The main sweep's
+proprietary arm runs $6.94 \to 4.74\times$ under local drift where the open arm
+here runs $5.65 \to 4.94\times$ --- the same $418/418$ win count and the same
+high-churn endpoint to within $4\%$, but $19\%$ apart at $\rho{=}0.002$. Under
+uniform jump the low-churn ends agree to under $1\%$ ($2.93$ against $2.95\times$)
+and the high-churn ends do not ($1.62$ against $1.35\times$). We therefore treat
+the win counts as the reproducible part and the geomeans as harness-dependent,
+which is the honest split: which arm was faster on a cell survives a change of
+harness, and a ratio of means does not.
+
+The two churning counts come from applying \S\ref{sec:motion}'s own exclusion
+rule, and it is worth saying how they arrived at it. Of the 420 drift cells with
+a churn label, the open arm loses exactly two --- and those two are precisely the
+degenerate cells \S\ref{sec:motion} identifies independently, one operator at one
+seed whose BFS returns 138 columns rather than 256, where $\lceil \rho|D| \rceil$
+rounds to zero and the dirty set never actually moves. The arm loses exactly
+where nothing moved, which is what a frozen cell wearing a churn label should do.
+That the exclusion set was derived from the generator and the loss set from an
+independent implementation's timings, and that they coincide exactly, is a check
+on both.
+
+\paragraph{But how much of the \emph{margin} is the strategy?}
+Comparing the two block-scheduled arms directly on identical cells, the shipped
+arm is faster on a frozen set ($1.12\times$) and \emph{slower} once the set moves
+--- $0.86\times$ under local drift and $0.66\times$ under uniform jump, geomean
+$0.75\times$ over all churning cells (per-cell range $0.53$--$1.33\times$). The open reference arm was not tuned; it
+avoids the $M{\times}B$ scratch of \S\ref{sec:defect} by construction and keeps
+its compiled segments position-independent, and those two choices are apparently
+worth more under churn than whatever the shipped arm does better.
+
+This matters beyond a ranking, because it moves the scope in which
+\S\ref{sec:select}'s question is live. Under uniform jump the shipped arm is the
+better one in 237 of 419 churning cells --- both classes populated, a real
+selection problem --- while the open arm is the better one in 395 of 419, which
+is much closer to the one-sided picture local drift gives. The open arm's 24
+uniform-jump losses are not spread evenly either: 16 are \texttt{scircuit}, 5
+\texttt{circuit\_3} and 3 \texttt{wang3}, the three lowest-density
+circuit-simulation operators, so what survives of the selection problem is
+concentrated rather than general. \textbf{So a substantial part
+of ``uniform jump makes arm selection a real problem'' is a property of one
+implementation rather than of the family.} We report \S\ref{sec:select} as
+measured, on the arm pair it was measured with, and flag that a better
+block-scheduled implementation shrinks the scope in which any selector is worth
+having. That flag is not compiler-specific: on the 378 cells built both ways,
+the open arm wins 115 of 126 uniform-jump churning cells against the proprietary
+arm's 66 under g++, and 97 against 63 under clang (\S\ref{sec:limits}). This is
+the clearest case in the paper of a conclusion that two implementations could
+not have reached.
+
+\paragraph{Which arm wins, per cell.}
+Per cell rather than per operator, the block-scheduled arm is the faster of the
+two in \textbf{418 of 418} churning cells under local drift --- every operator,
+every seed, every churn rate measured --- and in 313 of 419 under uniform jump.
+Under local drift, at $\rho{=}0.25$, it remains the better arm on all 21
+operators; under uniform jump the count falls from 20 of 21 at $\rho{=}0.002$ to
+12 of 21 at $\rho{=}0.25$.
+
+Those cells are not near-ties. The \emph{smallest} local-drift churning margin
+is $1.123\times$, and \textbf{zero} of the 418 sit within $10\%$ of parity
+against 53 of 419 under uniform jump. So under local drift there is no
+implementation-selection problem in the measured range and any policy that
+switches once the set moves is optimal by construction, while under uniform jump
+there is one. Section~\ref{sec:control} asks how much of that separation is the
+motion model and how much is the index order these operators happen to ship
+in.
+
+\section{Two one-sided measurement taxes}
+\label{sec:defect}
+
+Neither defect below is a defect in either implementation. Both are defects in
+what the harness charges to which of them, both were found only by asking of
+every timed operation whether the other family pays it too, and both survived
+several rounds of review. We report them together and early because they are the
+most transferable thing here: the benchmark's own protocol (\S\ref{sec:metrics})
+is what makes them findable, and a delta benchmark without that discipline will
+have them without knowing it.
+
+\paragraph{Session construction, charged to one family.}
+Each arm's re-preparation was timed around the call that produces a prepared
+session, which is what a cache miss costs the caller. One family of
+implementations allocated and zero-filled an $M \times B$ scratch block inside
+that call and outside its own build timer; the other compiles a $|D| \times B$
+scratch about three orders of magnitude smaller. The zero-fill was therefore
+charged to every cell of one family and to no cell of the other. Measured
+directly it was $0.0145$--$0.4159$~ms per session on a $0.32$--$10.44$~MB block,
+rising with $N$.
+
+Pooling the scratch across sessions removes it. The residual is
+$0.0083$--$0.0086$~ms across all five operators, a $1.04\times$ spread over a
+$33\times$ range of scratch sizes, which is the test that the fill is gone rather
+than relocated. The fix was not to move the timer inside the build, which would
+have made the measurement self-consistent while still charging one family for
+session construction.
+
+The effect is not confined to noise. On 525 config-identical paired cells per
+motion model, the aggregate ratio moved by $\times1.15$--$1.41$ at every $\rho>0$
+and by $\times0.96$--$0.99$ frozen, which is what a defect reachable only through
+re-preparation predicts: a frozen lane never re-prepares. Under uniform jump at
+$\rho{=}0.25$ the number of operators on which the block-scheduled arm is the
+better one went from 9 of 21 to 12 of 21, so an aggregate that read as a minority
+result became a majority one. On the 84-cell single-seed grid an earlier version
+of this study used, nine hindsight labels changed: eight toward the
+block-scheduled arm and one the other way. The defect therefore moved the
+classes a predictor is fitted to separate, not only the noise around them.
+
+\paragraph{Change detection, charged to the other family.}
+The second one runs the other way, which is why it is worth printing beside the
+first: finding one defect that flatters a system is not evidence that the
+remaining ones do too.
+
+Both families must detect that their own precondition moved --- the column-exact
+arm asks whether $D$ changed at all, the block-scheduled arm asks whether the
+dirty \emph{tile} set changed --- and both questions are $O(|D|)$. In the harness
+they were not. The column-exact side compared column arrays with a memory
+comparison, $0.0018$~ms at $|D|{=}256$; the block-scheduled side built its tile
+key as a set comprehension in the harness language, $0.0519$~ms, a $29\times$
+asymmetry on cells whose entire kernel is $0.02$--$0.09$~ms. Because the dirty
+columns are already sorted, deduplicating their tile indices needs one neighbour
+comparison and no set and no sort: $0.0043$~ms, within $2.4\times$ of what the
+baseline pays for the same kind of question.
+
+Removing it moves the block-scheduled arm's standing substantially and in its
+favour. Over 45 paired cells --- five operators spanning the density range,
+three churn rates, three seeds, identical in everything but that one flag --- the
+block-scheduled margin over the column-exact baseline rises by $1.48\times$ for
+the open reference arm and $1.47\times$ for the proprietary one. The correction
+is present frozen as well as churning ($1.55\times$ at $\rho{=}0$, $1.52\times$
+at $\rho{=}0.01$, $1.39\times$ at $\rho{=}0.25$), which is what a per-step cost
+that does not depend on whether anything moved should do, and it is large enough
+to change signs: on \texttt{bcspwr10} the open arm reads $0.86\times$ with the
+harness's own key and $1.35\times$ without it, a loss and a win for the same
+kernel on the same workload.
+
+Every churn number in this paper that predates the fix is conservative by
+roughly that margin, and the direction is the opposite of the
+session-construction defect's. That is the reason both are reported here rather
+than only the first: finding one defect that happens to flatter the system under
+test is not evidence that the remaining ones do.
+
+Stated as a rule rather than as two anecdotes: time what the \emph{caller} pays,
+and for each thing timed, check whether the other arm pays it too and in a
+comparable implementation. Both defects here passed the first test and failed
+the second, and a benchmark that only applies the first will report them as
+results.
+
+\section{Motion locality against index locality}
+\label{sec:control}
+
+Section~\ref{sec:families} varies one label and reports a large effect, and the
+label confounds two things. Local drift refills from the \emph{structural}
+neighbourhood of the survivors, while the block-scheduled arm re-prepares when a
+column leaves the \emph{column-index} blocks it already covers. Those coincide
+only because these operators arrive in orderings that happen to preserve
+locality, so 418 of 418 could be a restatement of the generator rather than a
+result. This section separates the two, and reports a smaller claim than
+\S\ref{sec:families} on its own would support.
+
+\paragraph{The control.}
+We relabel each operator, $A' = A[p][:,p]$ for a random permutation $p$, and
+replay the identical structural trajectory in the new index space. The graph is
+unchanged, the motion model is unchanged, and index locality is gone. The
+permutation has to be symmetric. Both the neighbourhood generator and the drift
+model walk the operator by using a column index as a row index, so under a
+column-only permutation that walk would follow edges into a scrambled index
+space and ``refills from the structural neighbourhood'' would stop being true of
+the permuted run, confounding the loss of index locality with the loss of the
+motion model itself. Under a symmetric relabelling the walk is the original walk
+with its nodes renamed.
+
+Permutation seeds drawn: \textbf{4} (101, 202, 303, 404). Each is an independent
+symmetric relabelling replayed across all 21 operators, all five dirty-set seeds
+and the same $\rho$ grid, so the four runs differ in the permutation and in
+nothing else, and the churning cell set is the same 418 cells in all of them.
+Relabelled numbers in this section are a median over the four with the range
+across them, except where a permutation is named; Figure~\ref{fig:motion} plots
+seed 101, the paper's original draw.
+Four draws of one relabelling process on one operator set are not four
+replications of the experiment. They share the operators and the structural
+trajectory, so they establish where the point estimate sits and whether any
+single draw was unrepresentative, and they do not tighten the intervals: each
+permutation is bootstrapped separately and the four intervals are reported side
+by side. Pooling the cells would divide the interval width by roughly two, on
+replication the design does not have, and it is interval width rather than the
+point estimate that the unresolved contrast below turns on.
+A random relabelling is also an extreme rather than a distribution --- real operators are neither
+optimally ordered nor uniformly scrambled --- so the control brackets the effect
+without saying where a given deployment's operator sits inside the bracket
+(\S\ref{sec:limits}).
+
+\paragraph{Result.}
+The block-scheduled arm does not still win 418 of 418 under permuted drift. It
+wins a median 382 of 418 across the four permutations (range 373--386) at a
+geomean of $2.35\times$ (range $2.34$--$2.37$) against $5.62\times$ native
+(Figure~\ref{fig:motion}, right). The original draw is the top of both ranges,
+386 cells and $2.37\times$, so the number the paper first reported was the most
+favourable of the four. Index-tile locality is doing real work and
+\S\ref{sec:families} should not be read as a claim about motion alone.
+
+That leaves three comparisons and they do not all carry the same weight. Each is
+a paired bootstrap over the 21 operators, 4000 resamples, 95\% CI, run
+separately within each permutation, on the unit and with the aggregation rule
+the selection contrasts of \S\ref{sec:contrast} use; margins are compared as a
+ratio of geomeans and win rates as a difference of proportions. Each is reported
+as the median point estimate over the four permutations, the widest interval any
+of the four produced, and how many of the four exclude the null.
+
+\begin{itemize}
+\itemsep1pt
+\item Destroying \emph{index} locality costs the margin $2.39\times$
+$[1.93, 2.93]$ ($5.62 \to 2.34$--$2.37$) and 32--45 of 418 cells, $+0.086$
+$[+0.000, +0.210]$ on the win rate. The margin effect is large and excludes the
+null in 4 of 4 permutations. The cell-count effect excludes it in 3 of 4, and
+the exception is seed 101, whose lower bound is $+0.000$: on that metric the
+original draw was the only one of the four that reached the null.
+\item Destroying \emph{motion} locality costs $2.92\times$ $[2.43, 3.49]$
+($5.62 \to 1.92$) and 105 cells, $+0.253$ $[+0.122, +0.399]$. Both exclude the
+null. Neither lane in this contrast is relabelled, so it is identical in every
+permutation.
+\item Local drift with \emph{no} index locality against uniform jump with index
+locality intact is the comparison the two are then ranked by, and it is the weak
+one. On the win rate it holds in all four: $89.2$--$92.3\%$ against $74.7\%$,
+$+0.167$ $[+0.050, +0.281]$, every interval excluding $0$. On the margin it
+holds in none: $1.22\times$ $[0.96, 1.57]$, every interval covering $1$. At the
+over-corrected end below, neither metric survives in any permutation:
+$1.05\times$ $[0.80, 1.37]$ on the margin and $+0.038$ $[-0.12, +0.15]$ on the
+win rate, where one permutation's point estimate is itself negative
+($-0.015$).
+\end{itemize}
+
+The residual is bounded from the wrong side. Relabelling slows the column-exact
+arm as well, by a per-permutation median of $1.152$--$1.173\times$ (per cell,
+$0.822$--$3.033\times$ over all four), against $2.67$--$2.75\times$ for the
+block-scheduled arm, so those cell counts are measured against a baseline that
+also degraded. Charging the block-scheduled arm its relabelling penalty while
+holding the baseline at its \emph{native} time over-corrects, since it refunds a
+cost the baseline really paid, and gives a median 328 of 418 (range 306--333) at
+$2.03\times$ (range $1.97$--$2.05$). The isolated effect sits between the two,
+so the control's result over four permutations is the bracket
+$1.97$--$2.37\times$ and 306--386 of 418 rather than either end. In the original
+draw every relabelled loss falls on three operators
+(\texttt{scircuit} 12, \texttt{wang3} 11, \texttt{rajat03} 9); those three carry
+losses in all four permutations, joined by \texttt{bcspwr10} in three and
+\texttt{epb2} in one, for a union of five. All five already
+change sides between drift and jump in the main sweep, so in every permutation
+relabelling costs the block-scheduled arm a subset of the operators uniform
+motion costs it rather than a new class.
+
+So what the control establishes is one thing and not two. Destroying index
+locality costs 32--45 of 418 cells and takes the margin from $5.62\times$ to
+$2.34$--$2.37\times$: a large effect, it holds in every permutation, and
+\S\ref{sec:families}'s 418 of 418 is partly a property of the orderings these
+operators ship in. Whether motion locality contributes anything \emph{beyond}
+index locality is still not resolved. The win-rate half of that ranking holds in
+all four permutations as measured and fails in all four at the over-corrected
+end; the margin half fails in all four at both. Replication moved that contrast's
+point estimate by $0.015$ and left all four intervals covering $1$, which is what
+it should do: more permutations of one operator set narrow nothing, and the
+ranking needs a wider operator set. What
+does not depend on the ranking is that ``there is no arm-selection problem at
+all under local drift'' is true of these operators as they ship rather than of
+local drift as such: relabelled, a small selection problem appears, and the
+online policy's agreement with hindsight falls from $100\%$ to
+$86.8$--$90.7\%$.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\linewidth]{fig_motion_control}
+  \caption{Left: the mixing axis. A fraction $\alpha$ of each step's refills is
+  drawn uniformly, so local drift and uniform jump are $\alpha{=}0$ and
+  $\alpha{=}1$. Both the margin and the share of cells the block-scheduled arm
+  wins fall monotonically, and most of the fall has happened by
+  $\alpha{=}0.25$. 21 operators, three seeds, 200 steps; read for shape rather
+  than for level (\S\ref{sec:limits}). Right: the four lanes the control
+  produces, churning cells only, labelled with the geomean over operators and
+  the count of cells the block-scheduled arm wins. The relabelled bars are
+  permutation seed 101 of the four \S\ref{sec:control} reports. The gap between
+  the first bar and the second is what destroying index locality costs,
+  $2.37\times$ $[1.93, 2.90]$ in this permutation and a median $2.39\times$ over
+  the four. The gap between the second or third bar and the fourth is the
+  contrast \S\ref{sec:control} declines to draw a conclusion from: its interval
+  covers $1$ in every permutation.}
+  \label{fig:motion}
+\end{figure}
+
+\paragraph{The mixing axis.}
+\label{sec:mixing}
+$\alpha$ makes the contrast a curve rather than a dichotomy
+(Figure~\ref{fig:motion}, left). Re-run at the main sweep's own length and seed
+count --- 21 operators, five seeds, 400 steps, $\rho \in \{0.01, 0.25\}$ --- the
+geomean falls $4.95 \to 3.43 \to 2.87 \to 2.74 \to 1.71$ across
+$\alpha \in \{0, 0.25, 0.5, 0.75, 1\}$, and the cells the block-scheduled arm
+wins fall $199/209 \to 188 \to 166 \to 169 \to 143$. The number of operators it
+wins on \emph{every} cell falls $19 \to 18 \to 15 \to 15 \to 12$ of 21.
+
+\textbf{The shape claim an earlier version of this section made does not
+survive that re-run, and did not really survive the earlier one either.} The
+claim was that the curve is concave and that most of the distance to uniform
+jump is covered by $\alpha{=}0.25$. Measured as a fraction of the total fall in
+log space --- the right frame for a ratio of geomeans --- $\alpha{=}0.25$ covers
+$34.5\%$ of it here and $39.1\%$ in the 200-step file. A third is not most, in
+either.
+
+What the curve actually does is fall at both ends and sit almost flat in the
+middle: the linear steps are $-1.52, -0.56, -0.13, -1.03$. Part of that plateau
+is an artifact the axis cannot avoid, and \S\ref{sec:motion} names it: $\alpha$
+scales an integer count of replacements, so at $\rho{=}0.01$, where
+$\lceil \rho|D| \rceil$ is 3, $\alpha{=}0.5$ and $\alpha{=}0.75$ both retire two
+columns uniformly and are the same workload measured twice. Those 105 cell pairs
+disagree by a geomean of $0.926$ on the block-scheduled lane, which is a floor
+measurement rather than a curve feature. The honest statement is the weaker one:
+a quarter of each step's replacements drawn uniformly already costs about a
+third of the way to uniform jump, so ``mostly local'' motion is meaningfully
+worse than local --- but the axis does not collapse onto its jump endpoint
+early, and no claim in this paper should rest on its middle.
+
+Split by rate, the selection problem appears first at high churn: at
+$\rho{=}0.25$ the block-scheduled arm wins 99 of 105 cells at $\alpha{=}0$ and 90
+at $\alpha{=}0.25$, where at $\rho{=}0.01$ the same step costs it 2 (100 to 98).
+
+Even at 400 steps this sweep's levels are not interchangeable with
+\S\ref{sec:families}'s, for a different reason than before: it covers two churn
+rates rather than four and scores the router's oracle rather than a direct
+comparison, so its $\alpha{=}0$ column reads 199 of 209 where \S\ref{sec:families}
+reads 418 of 418. The axis is for shape; \S\ref{sec:families} is for level.
+
+\section{What a merged schedule is worth}
+\label{sec:merge}
+
+The motion model also decides the value of a schedule optimization that has
+nothing to do with arm selection. A delta schedule can be emitted per
+column-tile, or it can be consolidated so that each distinct output row appears
+once and accumulates contributions from every dirty tile that touches it. The
+consolidated form touches fewer distinct output rows, and how many fewer is the
+merge's structural value. We report it as $\mathrm{rows}_{\text{per-tile}} /
+\mathrm{rows}_{\text{merged}}$, an integer ratio read off the built schedule
+rather than a timing, so the measurement floor does not enter it. It is
+invariant in batch width, checked on all 15 (operator, seed) cells that carry
+three batch widths.
+
+The sweep is 21 operators $\times$ 5 churn rates $\times$ 5 seeds $\times$ both
+motion models, 200 steps, $B{=}8$, and the reported cell is the last step. Its
+seeds are 17--21, the same five the main sweep uses. An earlier version of this
+study covered five operators at seeds 17/117/217; replaying that configuration
+reproduces its 120 committed rows exactly, both integers in each, so the change
+in level below is the operator set and nothing else.
+
+\paragraph{The row saving is now reproducible, and so is what it is worth.}
+The row counts in this section come from schedules only the proprietary arm
+builds, which made it the one part of the paper a reader could not recompute. The open
+reference arm of \S\ref{sec:families} emits both forms, so the ratio is now an
+integer identity anyone can check --- and it agrees across the whole table, not
+only at one point. Replaying the trajectory to the last step, exactly as this
+section's own convention requires, the open schedules save $2.97\times$ row
+touches frozen, $2.76\times$ under local drift and $1.72\times$ under uniform
+jump at $\rho \geq 0.01$, against $2.97$, $2.87$ and $1.74\times$ for the
+proprietary ones. The frozen figure is identical, the uniform-jump figure agrees
+to $1\%$, and the local-drift figure to $4\%$. The separation between the two
+motion models --- the thing this section is actually about --- is $1.61\times$
+on open code against $1.65\times$ on closed.
+
+Emitting both forms also prices something the row count cannot. A merged
+schedule must be re-emitted whenever the live tile set moves, where a per-tile
+one compiles only the tiles it has never seen, and the open arm lets both be
+timed on identical cells. Frozen, the merge is worth $1.15\times$ --- a real
+gain, but far less than the $2.97\times$ row saving suggests, because a row
+touch is not the unit that costs. Once the set moves it inverts hard: the merged
+form runs at $0.28\times$ the per-tile form at $\rho{=}0.002$ under local drift,
+falling to $0.07\times$ at $\rho{=}0.25$, and sits at $0.05\times$ throughout
+under uniform jump.
+
+So the merge's structural value and its realized value point in opposite
+directions across exactly the boundary this paper is about, and the gap is an
+order of magnitude wide. A merged schedule is worth having only if it can be
+updated without being rebuilt --- which is the design Appendix~\ref{sec:patch}
+builds and measures, and this is the open evidence for why that was the
+interesting thing to try. Read on its own, the $2.97\times$ row saving is the
+kind of number a benchmark reports as an optimization's value and a deployment
+never sees.
+
+\paragraph{Level and separation.}
+The merge is worth $2.97\times$ on a frozen set. On a moving one it is
+$2.87\times$ under local drift against $1.74\times$ under uniform jump, both
+restricted to $\rho \geq 0.01$ so that the two sides cover the same churn rates
+(Figure~\ref{fig:merge}, left; 21 operators, five seeds). Taking local drift over
+every churning rate instead, which is what a reader of the abstract of an earlier
+version of this study saw, reads $2.90\times$ and a separation of $1.66\times$
+rather than $1.65\times$; the choice does not matter here and it is stated
+because it does matter for the per-operator table below. Restricted to the
+original five operators the same file reads $2.16$/$2.13$/$1.26$, which is the
+five-operator study it replaces. The separation ratio is stable at
+$1.65$--$1.70\times$ across both populations; the levels are not, and the
+five-operator numbers understate the merge on a representative operator set by
+$35$--$38\%$.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\linewidth]{fig_merge_value}
+  \caption{What consolidating a schedule by global row is worth. A merge pays
+  only for output rows that more than one dirty tile contributes to, so this
+  ratio measures how much row sharing the motion leaves behind. Left: geomean
+  over 21 operators, median over five seeds, both motion models, never averaged.
+  Right: the same operators one by one, local drift against uniform jump at
+  $\rho \geq 0.01$. Points on the diagonal are operators the motion model does
+  not move; points below it are the two on which the merge is worth more under
+  uniform jump.}
+  \label{fig:merge}
+\end{figure}
+
+\paragraph{Uniformity across operators.}
+Per-operator sensitivity is drift over jump at matched $\rho \geq 0.01$, under
+the aggregation rule of \S\ref{sec:metrics}: median across the five dirty-set
+seeds within an (operator, $\rho$) cell, then geometric mean over $\rho$. Of the
+21 operators the merge collapses on 13 (sensitivity $\geq 1.5$; \texttt{olafu}
+$3.29$, \texttt{raefsky3} $3.00$, \texttt{ct20stif} $2.96$, \texttt{bcsstk25}
+$2.32$, and nine more), is moderate on 3, is indifferent on 3
+(\texttt{bcspwr09} $1.02$, \texttt{circuit\_3} $1.03$, \texttt{bcspwr10}
+$1.05$), and \emph{inverts} on 2: on \texttt{msc10848} ($0.79$) and
+\texttt{nasa2910} ($0.85$) the merge is worth more under uniform jump than under
+local drift. Both are FEM operators whose merge factor is high in every regime.
+These are integer row counts rather than timings, so they are not a measurement
+artifact, and nothing in the account below predicts them. The mechanism
+paragraph should not be read as covering all 21 operators.
+
+One operator changes band with the convention, and it is worth saying which. A
+first version of this table pooled the five seeds flat instead of taking their
+median, and took local drift over all churning $\rho$ against uniform jump at
+$\rho \geq 0.01$; that reads 14 collapses and 2 moderate, with
+\texttt{TSOPF\_RS\_b300\_c1} at $1.55$ rather than $1.28$. The quoted values move
+by $2$--$5\%$ ($\texttt{ct20stif}\ 3.09$, $\texttt{raefsky3}\ 3.11$,
+$\texttt{scircuit}\ 1.95$ under the unmatched convention). The two
+counter-examples are the same two under both.
+
+\paragraph{Mechanism.}
+The mechanism shows in the $\rho$ dependence rather than in the model labels. A
+merge consolidates rows that more than one dirty tile contributes to, so its
+value falls as far as the dirty tiles are scattered, and scattering takes time.
+At $\rho{=}0.002$ with $|D|{=}256$ the model retires one column per step, so a
+200-step run turns over 200 of 256 positions and the starting neighbourhood is
+still a majority of the set through most of it; on 7 of the 21 operators the
+uniform-jump merge factor at that rate is still within $5\%$ of its local-drift
+value. The
+same prediction holds within a single run: measured across the sampled steps,
+the merge at step $\geq 150$ is $0.978\times$ its value at step $\leq 25$ under
+local drift and $0.750\times$ under uniform jump, so under uniform redraw the
+merge is still falling when the run ends and under drift it is flat.
+
+What does \emph{not} hold is any structural predictor of which operators are
+sensitive. Over the 21 operators, sensitivity correlates $+0.20$ (Pearson) and
+$+0.10$ (Spearman) with tile density. An earlier version of this study read the
+flatness of \texttt{bcspwr10} as a low-density effect; that survives as a
+statement about those operators --- the two with $\mathrm{dens} < 0.30$ are two
+of the three flattest --- and fails as a rule, since the third is
+\texttt{circuit\_3}, which sits between them at $\mathrm{dens} = 0.80$, and the
+rest of the set has median sensitivity $1.85$. Two better candidates exist, the
+number of tiles the dirty set already spans ($-0.47$ Pearson, $-0.46$ Spearman)
+and $N$ ($+0.21$ Pearson, $+0.63$ Spearman), but at
+21 points with several candidates tried, no multiple-comparison correction and
+no held-out set, both are hypotheses.
+
+What is measured here is row sharing and its dependence on the motion model.
+The attribution to topological adjacency specifically is inferred: the row
+counts do not distinguish adjacency from any other property local drift
+preserves and uniform jump destroys. The contrast is controlled --- identical
+operators, $|D|$, $\rho$ and seeds --- and it shows in the raw counts, with
+\texttt{ct20stif} touching 1{,}892 distinct rows under local drift at
+$\rho{=}0.002$ against 11{,}906 under uniform jump.
+
+\section{A cost model, and why one structural predictor had to fail}
+\label{sec:model}
+
+Everything above is empirical, which leaves a reader unable to map their own
+workload onto it without running the harness, and leaves \S\ref{sec:select}'s
+negative result about structural prediction looking broader than it is. A short
+cost model fixes both. Per step, with $|D|$ dirty columns at batch width $B$:
+\[
+  T_{\text{ce}} \;=\; a\,\mathrm{nnz}_e B \;+\; b\, r_e B \;+\; q\,C_e,
+  \qquad
+  T_{\text{bs}} \;=\; a\,\mathrm{nnz}_s B \;+\; b\, r B \;+\; s\,|D|B \;+\; m\,C_t,
+\]
+where $\mathrm{nnz}_e = \mathrm{nnz}(A[:,D])$ is what a column-exact arm touches,
+$\mathrm{nnz}_s = \mathrm{nnz}(A[:,\mathrm{tiles}(D)])$ is what a tile walk
+scans, $\mathrm{dens} = \mathrm{nnz}_e/\mathrm{nnz}_s$, $r_e$ and $r$ are the
+distinct output rows each emission touches, $q \in \{0,1\}$ records whether $D$
+changed this step, $m$ counts tiles compiled this step, $C_e$ and $C_t$ are the
+cost of emitting a whole delta and one tile segment, and $s|D|B$ is the scatter.
+Everything but the four machine constants is structural and free to compute.
+
+\paragraph{The motion model enters in exactly one place.}
+It is $m$. An arriving column either lands in a tile the arm has already
+compiled, which is free, or in one it has not. Writing $\varphi$ for the
+probability of the latter,
+\[
+  \mathbb{E}[m] \;=\; \rho\,|D|\,\varphi ,
+\]
+and $\varphi$ is a joint property of the motion model and the operator's
+topology, measurable from the dirty-set trajectory with no timing at all. Under
+local drift an arrival is a structural neighbour of a survivor and neighbours
+mostly lie in tiles the survivors already occupy, so $\varphi$ is small; under
+uniform jump it approaches the uncovered fraction of live tiles. The paper's
+whole headline is that one number.
+
+\paragraph{Prediction 1: the frozen half needs no motion model.}
+At $\rho{=}0$ both $q$ and $m$ vanish and the ratio collapses to the apply
+alone, so the block-scheduled arm should lose by roughly the padding factor.
+Measured on the open reference arm over all 42 frozen cells, the frozen ratio
+divided by $\mathrm{dens}$ is $0.59\times$ (range $0.37$--$1.10$): padding is the
+right first-order account and explains rather more than half of the gap, and the
+operators with $\mathrm{dens}\!\approx\!1$ are the ones where the frozen gap
+closes to a tie. What the residual is remains unisolated, here and in
+\S\ref{sec:families}.
+
+\paragraph{Prediction 2: \texorpdfstring{$\mathrm{dens}$}{dens} alone had to
+fail.} Appendix~\ref{app:selection} reports that $\mathrm{dens}$ --- the
+mechanistically motivated structural feature --- separates neither motion
+model's classes, and reports it as a negative result about structural
+prediction. The model says something narrower and more useful:
+$\mathrm{dens}$ prices the apply and says \emph{nothing whatever} about
+re-preparation, which is the other half of the cost and the only half the motion
+model touches. A feature that is constant in $\rho$ and identical under both
+motion models cannot separate an outcome that is neither. The failure was
+predictable from the cost structure rather than evidence that no structural
+predictor exists, and the model names the missing feature: $\varphi$, which is
+obtained the same way $\mathrm{dens}$ is and at comparable cost.
+
+\section{Selecting the arm}
+\label{sec:select}
+
+Where neither arm dominates a deployable system must choose, and
+\S\ref{sec:families} locates that scope: uniform jump. This section asks what
+such a system has to observe in order to choose well. We compare offline
+models fitted to features available before running anything against an online
+policy that measures both arms on the caller's own workload.
+
+Appendix~\ref{app:selection} carries the protocol, the model table and the
+contrasts; this section states where a selection problem exists and what the
+comparison returns.
+
+\paragraph{Where a selection problem exists.}
+Restricted to churning cells under local drift the labels collapse: the
+block-scheduled arm is correct in all 418, so every method --- constant arm,
+learned model, online policy --- ties at zero regret by construction, and the
+study reports the collapse rather than a contrast. On the workload mixture
+(frozen and churning cells scored together, and named as a mixture wherever it
+appears) the decision is real but trivial: a depth-1 tree on the observed $\rho$
+alone reaches $0.994$ leave-one-operator-out accuracy and $1.000$ geomean
+regret, worst cell $1.01\times$, splitting at $\rho > 0$
+(Table~\ref{tab:predictors}). The best structural
+model reaches $0.805$ and $1.159$, worst cell $5.85\times$, which is exactly the
+score of always choosing the block-scheduled arm. No structural model beat that
+constant. Under local drift the deployment rule needs no model: switch when
+the set moves.
+
+The scope in which the question is live is uniform jump. There, on churning
+cells, $\rho$ carries no information: a depth-1 tree on $\rho$ alone scores
+$0.747$, identical to always choosing the block-scheduled arm, while structure-only
+logistic regression reaches $0.833$ and the best structure-plus-$\rho$ model
+$0.888$. So $\rho$ decides \emph{whether to switch arms at all} and does not
+decide \emph{which} arm once churn is established. A single-motion-model, single-seed
+sweep without a $\rho{=}0.002$ row cannot distinguish those two statements, and
+an earlier version of this study did not.
+
+\begin{table}[tbp]
+  \centering
+  \caption{Speedup is the geomean over always-column-exact; ``worst cell'' is the
+  largest slowdown against the per-cell hindsight oracle. Four blocks, never
+  collapsed. Under local drift, always-block-scheduled \emph{equals} the oracle
+  on churning cells, because it is never the wrong choice there.}
+  \label{tab:headline}
+  \small
+  \input{tab_headline}
+\end{table}
+
+Table~\ref{tab:headline} gives the results. On churning cells the policy reaches
+$5.12\times$ over always-column-exact in steady state under local drift and
+$4.00\times$ with all calibration charged, against a $5.57\times$ hindsight
+ceiling; under uniform jump, $1.90\times$ and $1.55\times$ against $2.06\times$.
+As a fraction of the ceiling that is $91.9\%$ and $92.2\%$ in steady state but
+$71.8\%$ and $75.3\%$ once calibration is billed. Those last two are properties
+of a 400-step harness rather than of the policy, and Appendix~\ref{sec:amortize} gives
+the curve. The uniform-jump figure sits on it directly, at $0.753$ for $S{=}400$;
+the local-drift figure does not, because the curve's local-drift scope is the
+workload mixture rather than churning cells alone. On frozen cells the ceiling is
+$1.00\times$, so there is nothing to win, and the policy delivers $0.96\times$
+steady and $0.90\times$ calibrated --- the cost of confirming that --- while
+spending zero probes in all 210 frozen cells.
+
+\paragraph{Offline selection against online probing.}
+Against the online policy, a nested offline model-selection procedure given
+structural features and the observed churn rate improves geomean regret by
+$0.044$--$0.078$ in all three scopes that carry a live decision, and no single
+model named in advance reproduces that. The probe is a one-time cost and
+amortizes in session length. Appendix~\ref{app:selection} gives the contrasts
+and their intervals and Appendix~\ref{sec:amortize} gives the amortization
+curve.
+
+\section{Limitations}
+\label{sec:limits}
+
+\paragraph{Availability of the proprietary arm.} One of the two
+block-scheduled implementations is proprietary and is released as measured
+behaviour rather than source, so a reader cannot re-derive its timings. What
+this costs is now much smaller than it was, because it is no longer the only
+member of its family in the study: the open reference arm of
+\S\ref{sec:families} carries the family claim, reproduces the dichotomy
+independently, and makes \S\ref{sec:merge} --- previously not reproducible from
+the artifact at all --- an integer identity a reader can recompute. Every
+headline in \S\ref{sec:families} and \S\ref{sec:merge} is therefore stated for
+an arm that ships with the benchmark, with the proprietary arm reported beside
+it as a second data point.
+
+What remains closed is a comparison rather than a claim: how much of the
+shipped arm's margin is its engineering rather than its strategy. A reader can
+check that the strategy reproduces; they cannot check our number for that
+particular product. We consider this the right residue --- the paper's
+contribution is the task, the motion model and the protocol, none of which
+depend on it.
+
+\paragraph{Permutation seeds.} The index-locality control of \S\ref{sec:control}
+replays one structural trajectory in two index spaces, over four permutation
+seeds. Four draws of one relabelling process on one operator set show that no
+single permutation was unrepresentative, and they do not narrow the intervals:
+each is bootstrapped separately, and pooling the cells would claim an
+independence the design does not have. That is why \S\ref{sec:control} reports
+the index-locality effect and still declines to rank the two localities. The
+ranking is carried by a $1.02$--$1.23\times$ margin contrast whose interval
+covers $1$ in all four permutations, where the index-locality effect itself
+excludes $1$ in all four at a median $2.39\times$ $[1.93, 2.93]$. More
+permutations of these 21 operators would leave both where they are; a wider
+operator set is what the ranking is short of.
+
+\paragraph{Measurement conditions and within-cell replication.} All timings come
+from a single Intel i7-1165G7 with turbo disabled and the performance governor
+pinned, g++ 13.3, PyTorch 2.13.0+cpu, f64. Ratios should be read as that
+machine's ratios. No cell is repeated (Appendix~\ref{sec:timing}), so the paper has two
+same-workload floor measurements rather than a within-cell variance, and they
+agree on the order of magnitude. The two $\rho{=}0$ blocks disagree by a median
+$1.041$ per cell with 18 of 105 over $1.10$ and a maximum of $1.553$. The mixing
+sweep supplies a second, independent one: $\rho{=}0.01$ retires three columns per
+step, so $\alpha{=}0.5$ and $\alpha{=}0.75$ both retire two uniformly and are the
+same workload under two labels; those 63 pairs repeat to a geomean of $0.974$ on
+the block-scheduled lane and $0.979$ on the column-exact lane, but $0.61$--$1.46$
+and $0.70$--$1.31$ per cell.
+
+That floor sits underneath several effects reported here, and it is not small.
+Its median is $1.041$ and its p90 $1.117$, so a contrast of a few percent is one
+measurement and not a difference. Most of what this paper rests on is either
+much larger (the $2$--$7\times$ margins of \S\ref{sec:families}, and the
+$2.37\times$ $[1.93, 2.90]$ index-locality effect of \S\ref{sec:control}) or is
+not a timing at all (the integer row counts of \S\ref{sec:merge} and
+Appendix~\ref{sec:patch}). Two things are not. The $2.4\%$ arena cost,
+single-operator ratios quoted to two decimals and the per-cell win counts at
+$\rho{=}0.01$ in the mixing sweep are inside the floor outright. And the
+contrast \S\ref{sec:control} uses to rank the two localities against each other
+is $1.02$--$1.23\times$, which spans the floor's own width; that is a second reason,
+independent of the bootstrap, why \S\ref{sec:control} reports the effect of
+destroying index locality and does not rank motion locality above it.
+
+\paragraph{Compiler and machine.} The multi-seed brackets
+quantify \emph{dirty-set variance only}. They are not machine brackets and not
+toolchain brackets, and those are larger: we measure compiler codegen alone as a
+$3$--$7\times$ effect on this kernel. It does not threaten every result here
+equally. A $3$--$7\times$ codegen effect
+cannot flip the $6.94\times$ family margin or the integer row counts, so the
+dichotomy of \S\ref{sec:families} and the merge result of \S\ref{sec:merge} are
+toolchain-robust. It can easily flip the 53 uniform-jump churning cells that sit
+within $10\%$ of parity, and those cells are where the selection study of
+\S\ref{sec:select} does its work, so the selection result is toolchain-fragile
+and should be given less confidence than the dichotomy. \S\ref{sec:control}
+splits: its index-locality effect is $2.37\times$ and sits with the dichotomy,
+while the $1.02$--$1.23\times$ contrast between the two localities sits with the
+selection result.
+
+We now measure a second toolchain rather than only conceding the point. The
+same source, the same flags and the same 378 cells, built with clang 18 instead
+of g++ 13.3:
+
+\begin{itemize}\itemsep2pt
+  \item \textbf{The dichotomy is toolchain-robust, as predicted.} The open
+    reference arm wins \textbf{126 of 126} churning local-drift cells under
+    \emph{both} compilers, and loses on frozen cells under both (9 of 126 won
+    under g++, 0 of 126 under clang). The proprietary arm reads 119 and 118 of
+    126 on the same cells.
+  \item \textbf{The levels are not.} The open arm's local-drift geomean falls
+    from $5.17\times$ to $3.83\times$, a $26\%$ move from nothing but the
+    compiler --- which is the concrete form of the $3$--$7\times$ codegen
+    caveat, and the reason \S\ref{sec:families} reports win counts as its
+    reproducible quantity.
+  \item \textbf{The open-versus-proprietary gap under uniform jump survives.}
+    The open arm wins 115 of 126 uniform-jump churning cells against the
+    proprietary arm's 66 under g++, and 97 against 63 under clang. The claim in
+    \S\ref{sec:families} that a substantial part of the uniform-jump selection
+    problem belongs to one implementation is therefore not an artifact of one
+    compiler.
+  \item \textbf{One ratio does reverse.} Comparing the two block-scheduled arms
+    directly under local drift, $p3/\text{open}$ moves from $0.822\times$ to
+    $1.034\times$ --- from the open arm being $22\%$ faster to a tie. The cause
+    is isolated and is in one lane: clang costs the open reference arm
+    $1.262\times$ while leaving the column-exact baseline ($0.968\times$) and
+    the proprietary arm ($1.006\times$) alone. That is a codegen difference in
+    one implementation, not a property of either strategy, and it is why
+    \S\ref{sec:families} states the drift ranking with this caveat attached.
+  \item The structural quantities do not move at all: the merge row-count ratio
+    is identical on 378 of 378 cells, as an integer identity must be, and
+    maximum relative error under clang is $2.0\times10^{-15}$.
+\end{itemize}
+
+What we still do not have is a second \emph{machine class}: every number here
+comes from one 4-core 28\,W mobile part, and a server-class memory hierarchy is
+the obvious place for a memory-bound sparse kernel's ratios to move. Nothing in
+this paper should be read as a claim about that machine.
+
+\paragraph{Scope of the mixing sweep.} $\alpha$ is now swept at the main
+sweep's own 400 steps and five seeds, so step count is no longer the reason its
+levels differ. Two reasons remain: it covers two churn rates rather than four,
+and it scores the router's per-cell oracle rather than a direct arm comparison.
+Its $\alpha{=}0$ column therefore reads 199 of 209 where \S\ref{sec:families}
+reads 418 of 418, and only its shape is interchangeable. The earlier 200-step,
+three-seed version of this sweep is the one an earlier draft's concavity claim
+rested on; re-running it did not rescue that claim (\S\ref{sec:mixing}).
+
+\paragraph{A between-block offset in the noise floor.} Across the two frozen
+blocks the 21-operator geomean spans $0.473$--$0.479$, and one block sits below
+the other on all five seeds, which is a systematic between-block offset rather
+than independent draws. Its sign is not stable across harness vintages. It
+cannot be a seed effect, since the same seeds are replayed in every block. We
+did not establish its mechanism.
+
+\paragraph{A confound in one motion model, and its control.} Uniform jump
+scatters the dirty set and, on 8 of 21 operators, also shrinks its nonzero count,
+because a random column slice is not the same size as a structural neighbourhood
+--- high-degree columns cluster, so a neighbourhood over-samples them and a
+uniform draw does not. On the other 13 the slice size barely changes and the
+model measures locality alone. Every drift-versus-jump contrast on those 8
+therefore compares two changes at once.
+
+The benchmark now ships a third motion model that separates them.
+\texttt{jump\_nnz} replaces each retired column with one drawn uniformly from the
+live columns whose nonzero count matches its own to within $10\%$, so locality is
+destroyed exactly as \texttt{jump} destroys it while the slice's nonzero count is
+preserved column by column rather than merely in aggregate --- which matters,
+because two slices can share a total and still give the arms different work
+depending on how the degree is distributed across tiles.
+
+\textbf{The confound is larger than the sentence above suggests, and it runs
+against uniform jump.} Measured as the slice's nonzero count at the last step
+over its count at the first, over 400 steps at $\rho \geq 0.01$: local drift ends
+at $0.818\times$ its starting work and uniform jump at $0.415\times$, while
+\texttt{jump\_nnz} holds $1.000\times$ (range $0.992$--$1.007$ over all 189
+cells, against $0.010$--$1.262$ for plain jump). The eight operators named above are the ones this shows up on, and on the worst
+of them the effect is not a $20\%$ correction at all:
+the worst single cell, \texttt{TSOPF\_RS\_b39\_c30} at $\rho{=}0.25$, ends at
+$0.010\times$ its starting nonzero count, so by the end of that run the
+uniform-jump lane is doing $100\times$ less work than the drift lane it is being
+compared against.
+
+That helps the column-exact arm disproportionately, because its cost scales with
+the slice's nonzeros while a tile walk has a floor set by the tiles it must
+scan. Holding the work and destroying only locality, over 189 paired cells at
+matched operators, churn rates and seeds, the block-scheduled margin under
+uniform jump rises from $1.82\times$ to $2.89\times$ for the open reference arm
+and from $1.19\times$ to $1.98\times$ for the proprietary one --- a $1.58$ and
+$1.66\times$ correction, in the direction that makes uniform jump \emph{less}
+damaging than this paper reports.
+
+The correction grows with the churn rate --- $1.40\times$ at $\rho{=}0.01$,
+$1.63\times$ at $\rho{=}0.05$, $1.74\times$ at $\rho{=}0.25$ --- which is what a
+shrinkage that accumulates over steps predicts, and it is concentrated on the
+operators where the shrinkage is: \texttt{memplus}, \texttt{case9} and
+\texttt{circuit\_3} each pay a factor of about $6$ in slice nonzeros and see
+their margins move by $2.9$--$3.9\times$, while the operators whose slice
+barely moves see corrections within $\pm 10\%$.
+
+So the honest reading of every drift-versus-jump contrast here is that it is an
+upper bound on what destroying locality costs, and part of what it attributes to
+locality is the workload getting smaller. The direction matters for the paper's
+own conclusions: it does not touch local drift, and it narrows rather than widens
+the gap between the two motion models. We report the uncorrected numbers
+throughout, because they are what the released sweep contains and because the
+correction is uniform in sign, and we release \texttt{jump\_nnz} so that anyone
+can measure the corrected version on their own operators.
+
+\paragraph{Batch width in the selection sweep.} The selection study fixes $B{=}8$.
+The family dichotomy is measured at $B\in\{1,8,16\}$ (Figure~\ref{fig:frozen})
+and the ordering does not change, but the selection results are single-$B$.
+
+\paragraph{Regime change.} Both motion models change regime at most once. A
+workload that alternates faster than a probe can settle would pay the probe tax
+repeatedly, which is the scope in which online measurement is most likely to be
+worth its cost and the scope this benchmark does not test. The amortization
+curve of Appendix~\ref{sec:amortize} extrapolates one regime for the same reason.
+
+\paragraph{Scope of the prediction result.} We do not claim that no predictor can
+exist, nor that offline prediction is universally preferable. We claim that under
+leave-one-operator-out evaluation on 21 operators, a nested model-selection
+procedure given structural features and the observed churn rate beats a
+both-arms probe on geomean regret in all three scopes with a hindsight ceiling
+above $1.00\times$, that the same holds with the one paid feature deleted, and
+that no single pre-registered model reproduces it. On the two frozen scopes the
+same contrast covers zero.
+
+\section{Artifact}
+\label{sec:artifact}
+
+We release the operator manifest and fetch script, the dirty-set generator (BFS
+growth, all three motion models and the mixing parameter), the open column-exact
+CSR delta baseline, \textbf{the open block-scheduled reference arm of
+\S\ref{sec:families} in both its per-tile and merged forms}, the solver
+instrumentation of \S\ref{sec:realmotion}, the benchmark harnesses, the metric
+protocol implementation, the complete result CSVs for every sweep in this paper,
+the leave-one-operator-out study and its bootstrap, the bootstrap for the
+index-locality control of \S\ref{sec:control}, and the figure and table
+generators.
+
+Releasing a member of \emph{each} family is what makes the central result
+runnable end to end: a reader can reproduce the frozen loss, the churning win,
+the merge identity and the two measurement taxes of \S\ref{sec:defect} without
+any proprietary component. The reference arm ships with a correctness suite
+that checks it against a direct evaluation, checks that a preparation stays
+exact for any dirty set inside the tiles it was prepared for, and checks that
+its scratch returns to zero --- the three ways an implementation of this shape
+can be fast and wrong. Every number in every
+figure, table and paragraph of this paper is printed from one of those CSVs by a
+committed script, with one exception. The exception is the $0.82$ against
+$0.35$~ms/step of Appendix~\ref{sec:timing}: it comes from a retired harness vintage,
+its per-step traces are not among the released files, and it is an illustration
+of a measurement rule rather than a result the paper rests on. Everything else
+is reachable by running \texttt{paper\_numbers.py}, which tags each value with
+the section that quotes it. The offline procedure the paper reports is the one
+the released study emits.
+
+We do not release per-step cost traces. Their absence is what makes the selection
+results reproducible only as far as the aggregates go, and adding them is the
+single change that would most reduce the cost of the closed arm.
+
+\section{Conclusion}
+
+Delta-input SpMM is a widespread workload that existing sparse benchmarks
+structurally cannot see, because they hold the operand's relationship to its
+predecessor outside the experiment. Letting the dirty set move reveals an
+opportunity a one-shot protocol reports as nothing, appearing at a churn of two
+columns in a thousand.
+
+Letting it move in two different ways reveals that the opportunity is not one
+number. How the dirty set moves decides how large the gap between the two
+implementation families is ($6.94\times$ against $2.95\times$ at the same churn
+rate), whether an implementation-selection problem exists at all (418 of 418
+cells one way, 313 of 419 the other --- though a second block-scheduled
+implementation reaches 395 of 419 there, so part of that problem belongs to an
+implementation and not to the family), and what a schedule merge is worth
+($2.87\times$ against $1.74\times$ over 21 operators at $\rho \geq 0.01$). A
+control separates that from the index order the operators happen to ship in and
+finds, over four independent permutations, that the index order accounts for
+part of it, a median $2.39\times$ $[1.93, 2.93]$ of the $5.62\times$ native
+margin; which of the two localities
+matters more is not resolved by 21 operators. None of it is visible in the
+operator's structure, and none of it is visible in the churn rate alone. A
+benchmark for this task has to name its motion model, and a claim about this
+task that does not name one is underspecified.
+
+Four additions decide how far any of that generalizes, and each is a different
+kind of check. An independently written open implementation of the
+block-scheduled strategy reproduces the dichotomy --- a frozen loss, and 418 of
+418 churning cells under local drift, the same count the proprietary arm reaches
+--- which makes the result a property of the strategy rather than of one
+product, and which no amount of care with a single pair of arms could have
+established. It also disagrees where it matters: under uniform jump it wins 395
+of 419 where the proprietary arm wins 237, so part of what \S\ref{sec:select}
+treats as a selection problem belongs to an implementation. Reading the dirty
+set off two real solvers rather than generating it finds
+$\alpha_{\text{emp}} = 0.000$ for transient propagation on every operator tried
+and $\alpha_{\text{emp}} \approx 0.44$ for Newton convergence, so the regime this
+paper is about is real for time-stepping workloads and is not the regime an
+iterative solve occupies. A motion model that holds the dirty slice's work while
+destroying its locality shows that uniform jump was being charged for both, and
+that every drift-versus-jump contrast here is an upper bound by $1.58\times$.
+And two measurement taxes, pointing in opposite directions, each moved an
+aggregate comparison enough to change what it said.
+
+That last pair is the part most likely to matter to somebody else's benchmark.
+Both defects passed the obvious test --- time what the caller pays --- and failed
+the one that is easy to skip: check whether the other arm pays it too, in a
+comparable implementation. A delta benchmark compares implementations that
+prepare differently, so it is structurally prone to charging one of them for
+work the other never does, and we found two in our own harness after several
+rounds of review.
+
+Where a selection problem does exist, the cheapest sufficient observation wins.
+An offline model-selection procedure given free structural metadata and the
+observed churn rate beats a policy that probes both arms, because the probe has
+to run the losing arm and the losing arm loses by a great deal. The probe does
+amortize: the policy holds $92$--$93\%$ of the hindsight ceiling on a long
+session rather than the $75$--$78\%$ a 400-step harness reports, and it still does not overtake
+the nested procedure at any session length. It does overtake the pre-registered
+logistic regression, at $S \approx 1000$--$1300$ on the two mixtures
+(Appendix~\ref{sec:amortize}).
+That leaves online measurement with two arguments this benchmark does
+not settle: regime change, which it does not test, and arm sets for which no
+cheap scalar exists.
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\appendix
+
+\section{Protocol and validation details}
+\label{app:protocol}
+
+\subsection{Timing protocol}
+\label{sec:timing}
+
+A cell is one (operator, $\rho$, seed, motion model) at $B{=}8$, run for 400
+steps. The dirty-set stream, the $dx$ blocks and the column index tensors are
+generated once per cell, outside every timed region, and handed to every
+implementation, so all of them replay the same workload step for step. Each step
+is timed individually and the timed region covers exactly what a caller would
+pay at that step: the apply, plus any re-preparation that fell there. The cell's
+reported cost is the \emph{mean} over the 400 steps, not the median, because
+re-preparations are rare and lumpy and a median hides them.
+
+Implementations run in a fixed order within a cell (column-exact,
+block-scheduled, patchable, then the policy). The three-arm sweep of
+\S\ref{sec:families} is the exception and rotates its five lanes by step, which
+is one reason its levels are not interchangeable with this one's; the ordering
+effect itself was measured on three operators and moved no ratio by more than
+$5\%$. Each implementation's \emph{first}
+preparation is charged as startup and excluded from the per-step stream: it is
+paid once whatever the workload does, and charging it as a churn rebuild priced
+the baseline at $0.82$~ms/step against its true $0.35$ on one operator. That
+last pair is from a retired harness vintage and is the one number in this paper
+not reachable from the released CSVs (\S\ref{sec:artifact}).
+No cell is repeated. The replication in this benchmark is the five dirty-set
+seeds, which are five different workloads rather than five measurements of one;
+\S\ref{sec:limits} reports two separate same-workload floor measurements and
+they are the number every ratio here has to be read against.
+
+The one median in the paper belongs to the online policy rather than to the
+harness: its arm estimator is
+$\widehat{c} = \mathrm{median}(\text{apply}) + \widehat{r}\cdot
+\mathrm{mean}(\text{re-prepare})$ over its probe window (\S\ref{sec:measure}).
+
+\subsection{Exactness}
+
+Absolute error is not a usable criterion here. Entry magnitudes span many orders
+of magnitude across this operator set, so on the largest-valued operators a
+last-bit-correct result reads as a large absolute error, and the baseline reads
+the same. Maximum \emph{relative} error over the 105 distinct exactness checks in
+the sweep is $1.6\times10^{-15}$, and $8.4\times10^{-16}$ excluding the single
+operator that sets it. That figure is an upper bound taken across all lanes
+against one common reference, so it does not attribute the largest value to any
+particular implementation. Any
+implementation that trades accuracy for speed is out of scope; the task is exact
+maintenance.
+
+The open reference arm is held to the same standard and checked more finely,
+because it is new code and an implementation of its shape can be fast and wrong
+in three specific ways. Its released test suite checks the product against a
+direct evaluation at $B \in \{1,2,4,8,16\}$ on operators spanning the density
+range; that a preparation made for one dirty set stays exact when applied to a
+\emph{different} dirty set drawn from the same column tiles, which is the
+family's defining property and the thing the churn measurement leans on, and that
+no tile is recompiled when that happens; and that its scatter buffer returns to
+all-zero after every apply, since a scatter that forgot to un-scatter would leave
+the previous step's operand in place and produce a wrong answer only once the
+dirty set moved --- exactly the regime being measured. Over the 1050-cell
+three-arm sweep the maximum relative error across every lane is
+$2.0\times10^{-15}$, the same order as the two-arm bound above.
+
+\subsection{Validation of the index-locality control}
+
+Four checks, recorded per cell rather than asserted, and re-run within each of
+the four permutations rather than carried over from the first. The relabelled
+operator reproduces the native product to a maximum relative error of
+$8.1\times10^{-16}$ to $1.3\times10^{-15}$, depending on the permutation, over
+all 525 relabelled cells of each, which fails if the
+permutation is applied to the operator but not the dirty set, to the dirty set
+but not the operator, or in the wrong direction. $|D|$ and $\mathrm{nnz}$ are
+identical on 525 of 525 paired cells in every permutation, so all four index
+spaces replay the same structural sets step for step. All implementations agree
+within a cell to $1.6\times10^{-15}$, the same bound as the main sweep, in every
+permutation. And the native half of
+the run reproduces the committed sweep: 418 of 418, per-$\rho$ geomeans
+$6.97/6.12/4.91/4.75$ against the main sweep's $6.94/6.15/4.89/4.74$. The native
+half does not depend on the permutation and is measured once.
+
+\section{Selecting the arm, in full}
+\label{app:selection}
+
+\subsection{The cost of a wrong choice, and a structural predictor}
+
+\paragraph{The penalty for choosing wrongly.}
+Mis-routing is expensive and unequally so, and both halves of the asymmetry are
+properties of the motion model (Figure~\ref{fig:asym}). On churning cells under
+local drift, committing to the column-exact arm costs up to $35.6\times$
+($n{=}418$), and committing to the block-scheduled arm costs at most
+$1.00\times$ because there is no churning cell where it is wrong ($n{=}0$).
+Under uniform jump the two sides are $19.9\times$ ($n{=}313$) and $2.40\times$
+($n{=}106$). On frozen cells the block-scheduled side of the penalty reaches
+$5.85\times$ (drift, $n{=}102$) and $5.87\times$ (jump, $n{=}100$); those are
+frozen numbers, they are not in Figure~\ref{fig:asym}, and they are not
+interchangeable with the churning ones.
+
+\paragraph{Structural separability.}
+Let $\mathrm{dens}$ be the fraction of scanned entries that are actually needed,
+the reciprocal of the padding above, computable from $A$
+and $D$ with no timing. It is the mechanistically motivated predictor: it is
+what determines the block-scheduled arm's per-step disadvantage. It does not
+work in either model, for different reasons (Figure~\ref{fig:overlap}). Under
+local drift there is nothing to separate: the block-scheduled arm wins at
+$\mathrm{dens}$ from $0.17$ to $1.00$, so any fitted threshold must sit at or
+below $0.17$ and the feature carries no information. Under uniform jump the two
+classes overlap on $\mathrm{dens} \in [0.17, 0.91]$, an interval containing 340
+of 419 churning cells; the best threshold fitted \emph{with hindsight on the test
+set} reaches $0.747$ accuracy at $\tau = 0.558$, which is exactly the accuracy of
+always choosing the block-scheduled arm.
+
+\begin{figure}[tbp]
+  \centering
+  \begin{subfigure}{0.48\linewidth}
+    \includegraphics[width=\linewidth]{fig_asymmetry}
+    \caption{Cost of the wrong choice, churning cells only.}
+    \label{fig:asym}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.48\linewidth}
+    \includegraphics[width=\linewidth]{fig_overlap}
+    \caption{The structural predictor against the realized arm.}
+    \label{fig:overlap}
+  \end{subfigure}
+  \caption{Left: mistakes are expensive and expensive unequally, and under local
+  drift one direction of mistake does not exist among churning cells. Right:
+  under local drift there is no second class; under uniform jump the classes
+  overlap on the one feature theory recommends.}
+\end{figure}
+
+\subsection{Offline models: protocol}
+
+Eight model families (constant arms, depth-1 and depth-3 decision trees,
+logistic regression, $k$-NN, random forest, gradient boosting) under
+\textbf{leave-one-operator-out} cross-validation: all 25 rows of an operator
+leave together, so no seed of an operator can leak into the fold that scores it.
+A random split over cells would place churn rates and seeds of the same operator
+on both sides, letting the model memorize the operator, which deployment never
+permits. Three feature sets are scored separately, because conflating them
+flatters prediction: \emph{structure} (operator-intrinsic only: $\mathrm{dens}$,
+$\log N$, $\log \mathrm{nnz}$, mean row nnz, dirty fraction), \emph{observed
+$\rho$} (the measured churn rate alone, a count of changed columns rather than a
+structural prediction), and \emph{both}. We report accuracy and the distribution
+of \textbf{regret}: realized slowdown against the per-cell hindsight oracle.
+Every comparison between two strategies is a paired bootstrap over the 21
+operators, 4000 resamples, 95\% CI (Table~\ref{tab:contrasts}). Where an offline
+strategy is compared against the policy, the offline side is a \textbf{nested}
+procedure: the learner is chosen by an inner leave-one-operator-out inside each
+training fold, so the choice never sees the rows that score it.
+
+\begin{table}[tbp]
+  \centering
+  \caption{Offline prediction under leave-one-operator-out cross-validation, per
+  motion model, on the workload mixture (frozen and churning cells scored
+  together). Accuracy is reported and is not used as an argument.
+  \S\ref{sec:contrast} measures what share of an accuracy gap sits on cells
+  whose labels this harness cannot resolve; under a flat $10\%$ parity band the
+  share is $4.0\%$ on the two local-drift rows and $21.5\%$ on the two
+  uniform-jump rows, and it reaches $87$--$100\%$ on uniform-jump churning
+  cells, which are a different scope and are not in this table.}
+  \label{tab:predictors}
+  \small
+  \input{tab_predictors}
+\end{table}
+
+\subsection{The online policy}
+\label{sec:measure}
+
+The policy treats both arms as black boxes and never inspects the operator. It
+opens committed to the column-exact arm, because a dirty set that has not moved
+cannot have forced a re-preparation. At the first movement in $D$ it probes:
+both arms run on the caller's own workload for a bounded window of 32 steps, and
+each arm's steady cost is estimated as
+\[
+  \widehat{c} \;=\; \mathrm{median}(\mathrm{apply}) \;+\;
+                    \widehat{r} \cdot \mathrm{mean}(\text{re-prepare}),
+\]
+decomposed rather than taken as a window mean because re-preparations are rare
+and lumpy: a short window holds one or none, and a raw mean is dominated by
+whether the spike happened to land inside it. The cheaper arm is committed to.
+Re-probes fire on regime change, and the incumbent keeps serving throughout,
+since a re-probe fires when an arm has gone bad and serving with the arm under
+suspicion would make every re-probe expensive. Nothing in the policy is specific
+to either arm or to sparse linear algebra; it requires only that the arms be
+interchangeable and individually timeable.
+
+It picks the hindsight arm in 418 of 418 churning cells under local drift, where
+the arms are far enough apart that a 32-step probe separates them every time,
+and in 364 of 419 under uniform jump, where the two arms sit close together on
+many operators and a probe has less to separate. Frozen agreement is 102 of 105
+and 100 of 105. Maximum relative error across the sweep is $1.6 \times 10^{-15}$
+including every arm switch; switching arms mid-stream changes timing and nothing
+else. Median one probe per run; the maximum is six under local drift and one
+under uniform jump.
+
+\subsection{An offline model given the observed churn rate}
+\label{sec:contrast}
+
+The comparison that matters is not offline-versus-online, because both sides
+measure something. The question is \emph{what} is measured: one scalar, or both
+arms. The observed $\rho$ is a count of changed columns and is free --- the
+generator retires $\mathrm{round}(\rho|D|)$ columns deterministically, so the
+step's count of changed columns recovers $\rho$ exactly, with no estimation
+window. The probe must run the losing arm for a bounded window and is not free.
+We therefore give an offline procedure the structural features \emph{and} $\rho$,
+and score it against the online policy on identical cells.
+
+\paragraph{Procedure, not model.} Five scopes are non-degenerate; three of them
+carry a live decision. Against the online policy in steady state the nested
+procedure improves geomean regret by $0.078$ $[0.054, 0.101]$ on the local-drift
+mixture, $0.060$ $[0.040, 0.081]$ on uniform-jump churning cells, and $0.044$
+$[0.019, 0.069]$ on the uniform-jump mixture. All three intervals exclude zero.
+On the two frozen-only scopes, where the ceiling is $1.00\times$, the same
+contrast covers zero ($-0.027$ $[-0.074, +0.030]$ drift, $-0.003$ $[-0.058,
++0.057]$ jump); those rows are in Table~\ref{tab:contrasts} rather than omitted,
+since a claim of the form ``in every scope'' is checkable only if the scopes that
+do not support it are printed.
+
+Nesting addresses the objection that the learner is chosen by the same held-out
+regret that then scores it. The spread across the six learners is
+$0.089$--$0.159$, which bounds the bias, but the bias itself is $0.000$--$0.005$
+and the contrast does not move when the selection is nested. What does not
+survive is the claim as a statement about \emph{a model}. A logistic regression
+pre-registered on principle before any score was read --- lowest-capacity learner
+that consumes every feature, monotone decision surface, no hyperparameter to tune
+--- \emph{loses} to the policy on the local-drift mixture ($+0.080$ $[+0.047,
++0.114]$) and on the uniform-jump mixture ($+0.076$ $[+0.016, +0.150]$). So the
+claim is about a model-selection procedure and not about a model: the procedure
+beats the policy in all three scopes, and no single model named in advance does.
+A depth-1 tree, equally defensible since the deployed threshold rule is literally
+one, does not lose anywhere. ``No single model named in advance'' is the right
+statement, and it is narrower than it sounds.
+
+\begin{table}[tbp]
+  \centering
+  \caption{Paired bootstrap over the 21 operators, 4000 resamples, 95\% CI.
+  Positive means the first strategy is worse. Bold marks intervals excluding
+  zero. The offline side of every contrast is the nested procedure. Every
+  non-degenerate scope is listed, including the frozen ones; local-drift
+  churning cells are absent because that scope is single-class.}
+  \label{tab:contrasts}
+  \small
+  \input{tab_contrasts}
+\end{table}
+
+\paragraph{Feature cost.} Of the six features, only $\mathrm{dens}$ is not free:
+measured over 21 operators and five seeds it costs 7.5 column-exact applies,
+because its implementation counts over every nonzero of $A$; with that count
+hoisted out, the part that depends on the dirty set costs $0.16$ of an apply.
+The probe's calibration excess is 115 applies under drift and 121 under jump, so
+the probe costs $15$--$760\times$ more either way. Refitting the nested procedure
+on strictly free metadata plus $\rho$ still beats the policy in all three scopes:
+$-0.078$ $[-0.101, -0.054]$, $-0.060$ $[-0.095, -0.026]$, $-0.039$ $[-0.069,
+-0.007]$. The win is not from $\rho$ alone --- $\rho$-only ties the constant arm
+on uniform-jump churning cells, $1.0705$ against $1.0705$ --- and it is not from
+$\mathrm{dens}$ either. It is from the free structural metadata and $\rho$
+jointly.
+
+\paragraph{Accuracy sits partly under the measurement floor.} $\rho{=}0$ is the
+identity for both motion models, so the two $\rho{=}0$ blocks are the same
+workload measured twice, and their disagreement is a measurement floor: median
+$1.041$, p90 $1.117$, max $1.553$, with 18 of 105 over $1.10$. Under a flat
+$10\%$ parity band, 53 of 419 uniform-jump churning cells are unresolvable, and
+they carry $87\%$ of the $0.888$-versus-$0.833$ accuracy gap between feature sets
+and $100\%$ of the offline-minus-policy accuracy gap. Regret is a different
+matter and survives all three floor definitions: restricted to resolvable cells
+the contrast keeps its sign and its interval. This is why accuracy is reported
+in Table~\ref{tab:predictors} and is not used as an argument.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.62\linewidth]{fig_regret_cdf}
+  \caption{Where each strategy's cost lands, cell by cell, on the workload
+  mixture. The geomean and the tail disagree about which method to prefer, which
+  is why both are reported.}
+  \label{fig:cdf}
+\end{figure}
+
+\paragraph{What the policy still has.} On the uniform-jump workload mixture the
+best structure-only model's worst cell is $6.84\times$ against the policy's
+$1.91\times$ in steady state, and the paired bootstrap on worst-case regret puts
+the nested structure-only procedure $+4.17$ $[+2.04, +5.46]$ above the policy.
+Selection here is variance control rather than mean improvement, and a benchmark
+in this area should report the worst cell beside the geomean because the two
+disagree about which method to prefer (Figure~\ref{fig:cdf}). The
+structure-plus-$\rho$ model's worst cell is $2.03\times$, so most of that tail
+protection is available offline as well. The policy also needs no training set
+and no assumption that deployment operators resemble the operators a model was
+fitted on; this sweep cannot price that advantage, because every model here is
+scored leave-one-operator-out on the same 21 operators, all of them power flow,
+circuit simulation or structural FEM.
+
+\section{Amortization of the calibration cost}
+\label{sec:amortize}
+
+The probe is a one-time cost, so whether it amortizes is a question about
+session length rather than about operator size, and the harness answers it
+exactly. The reported per-step cost is the mean over all 400 steps and the
+steady-state cost is the mean after the 32-step probe window, so the one-time
+excess is exactly $400\,(c_{\text{full}} - c_{\text{steady}})$ per cell and an
+$S$-step session costs $c_{\text{steady}} + \text{excess}/S$ per step. That is an
+identity, not a fit.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.62\linewidth]{fig_amortization}
+  \caption{Fraction of the hindsight ceiling held, against session length, for
+  the three scopes that carry a live decision: the local-drift workload mixture,
+  uniform-jump churning cells, and the uniform-jump workload mixture. The
+  sweep's own length is marked, and the three curves pass through
+  $0.752/0.753/0.781$ there. Of the pair \S\ref{sec:select} quotes at 400 steps,
+  $71.8\%$ and $75.3\%$, only the second is on this plot --- it is the middle
+  curve, uniform-jump churning cells, at $0.753$. The $71.8\%$ is local-drift
+  churning cells, which is not one of these three scopes and has no curve here.}
+  \label{fig:amort}
+\end{figure}
+
+Held fraction of the ceiling is $1/\text{geomean(regret)}$, and over the three
+scopes it rises from $0.27$--$0.32$ at $S{=}32$ through $0.75$--$0.78$ at
+$S{=}400$ to $0.87$--$0.89$ at $S{=}1600$ and an asymptote of $0.92$--$0.93$
+(Figure~\ref{fig:amort}). Contrasts (c) and (d) in
+Table~\ref{tab:contrasts} are the same quantity at $S{=}\infty$ and $S{=}400$:
+on the local-drift mixture the difference runs $-0.330$ at 400 steps, $-0.208$
+at 800, $-0.145$ at 1600, $-0.096$ at 6400 and $-0.079$ in the limit. The
+policy's long-session number is therefore $92$--$93\%$, against the
+$0.75$--$0.78$ a 400-step harness reports.
+
+At $92$--$93\%$ it is still behind. Against the nested procedure the policy never
+overtakes, at any session length, under any of the three ways of charging for
+$\mathrm{dens}$. Against the pre-registered logistic regression it overtakes at
+$S \approx 1000$--$1300$ on the two mixtures, with the interval covering zero
+from about $S{=}800$, and never on uniform-jump churning cells.
+
+The curve extrapolates a single regime. Both motion models change regime at most
+once in this benchmark, so nothing here prices a workload that alternates: each
+real regime change costs the policy another probe and costs the offline model
+only a feature recompute. Which of those is worse is untested and is the single
+most likely thing to change the answer.
+
+\section{A merged-but-patchable schedule}
+\label{sec:patch}
+
+Sections~\ref{sec:families} and~\ref{sec:merge} isolate two properties that
+would be valuable together. A merged schedule touches $2.9\times$ fewer distinct
+output rows on a frozen or locally drifting set; per-tile compiled segments are
+what make re-preparation cheap when the set moves. We built and measured a third
+implementation that has both: merged rows laid out with per-row slack so that a
+single column-tile's contributions can be spliced in or out of a live schedule
+without re-emitting it.
+
+\paragraph{Layout.}
+The merge survives being laid out that way exactly: the merged-and-patchable
+schedule touches the identical number of distinct output rows as the flat merged
+schedule on \textbf{1050 of 1050} cells of the 21-operator sweep, and on 165 of
+165 of the five-operator timing files. That is an integer identity
+rather than a timing, so the measurement floor cannot reach it. The expected
+failure mode was that slack would dilute the schedule and
+cost the kernel its locality. It does not: at occupancy ratios up to $5.95\times$
+(drift) and $7.52\times$ (jump) the patchable kernel runs at $0.976\times$ the
+packed one, a $2.4\%$ cost, geomean over 60 churning cells per model.
+
+\paragraph{Incremental build.}
+As a whole lane the merged-and-patchable strategy runs at $0.81\times$ the
+per-tile-compiled one under local drift and $0.66\times$ under uniform jump; it
+is ahead in 17 of 60 cells and 4 of 60. Splicing is the cheaper way to move a
+merged schedule: one splice costs $1.11$--$105\times$ less than the from-scratch
+merged rebuild it replaces, in all nine cells measured. It is not competitive
+with never having merged (Figure~\ref{fig:splice}). Entering the patchable form
+costs $2.7$--$3.7\times$ a flat merged build, so against a merged schedule that
+rebuilds every step the crossover runs from $1.8$ to $27.3$ steps.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\linewidth]{fig_splice_events}
+  \caption{Placement events and their price. The event-count gap reaches
+  $50.5\times$ and the per-event ratio runs the other way, so neither number
+  alone describes the strategy.}
+  \label{fig:splice}
+\end{figure}
+
+\paragraph{Mechanism.}
+A tile's contributions are context-free: they can be derived once and cached
+against the tile, which is what the per-tile-compiled strategy does. What is not
+context-free is \emph{placement} --- where a merged row's span sits, how much
+slack it has, what its entry offsets are --- because all three depend on which
+other tiles are currently present. The event counts follow. At the widest cell
+the patchable strategy performs $55.6$ placement events per step where the
+per-tile one compiles $1.1$, and because $|D|$ and the tile count are stationary
+(at $194.1$), those events are about $27.8$ arrivals and $27.8$ departures.
+
+The decomposition is over event counts and the conclusion a reader wants is
+about cost, and we did not measure the two event classes separately, so what
+follows is bounded rather than settled. Departures are irreducible for a merged
+layout and free for a list of segments. Arrivals are not removable either, since
+an arriving tile still has to be placed; what is cacheable is the
+\emph{derivation} of an arriving tile's contributions, by exactly the mechanism
+the per-tile strategy already has and which the implementation measured here
+does not. A cache would therefore make arrivals cheaper without making them go
+away, and the residual gap would still be $27.8$ placement events against $1.1$
+compiles. Quoting the $50.5\times$ whole overstates the barrier; calling half of
+it an unbuilt cache understates it. What this section settles is its layout
+half, the row-count identity and the occupancy measurement, rather than its
+mechanism half.
+
+\paragraph{As a third arm.}
+The same implementation was measured as a candidate third arm across all 21
+operators and both motion models. It is at parity with the shipped
+block-scheduled arm only on a frozen set ($1.12\times$ / $1.11\times$) and at the
+lowest churn rate under local drift ($1.05\times$), and falls to $0.43\times$ and
+$0.20\times$ by $\rho{=}0.25$. A three-arm hindsight oracle would beat the
+two-arm one by at most $8.3\%$, at local drift $\rho{=}0.002$, and by $0.2\%$ or
+less at every uniform-jump rate (Figure~\ref{fig:third}). Since the online
+policy probes every arm, a third arm costs a third probe on every re-decision to
+capture that, against a policy whose calibration cost is already what limits it
+(Appendix~\ref{sec:amortize}).
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.86\linewidth]{fig_third_arm}
+  \caption{The third implementation against the shipped block-scheduled arm, and
+  what a three-arm hindsight oracle would have been worth over the two-arm one.}
+  \label{fig:third}
+\end{figure}
+
+% otherwise this heading lands alone at the foot of the previous page
+\clearpage
+\section{Per-operator results}
+
+% [!ht] rather than [tbp]: this is the only content in its appendix, and a
+% top-of-page float put the table above its own section heading.
+\begin{table}[!ht]
+  \centering
+  \caption{All 21 operators under both motion models. Values are the better
+  arm's margin over the column-exact baseline, median across five dirty-set
+  seeds. Bold marks cells where the block-scheduled arm is the better one.}
+  \label{tab:operators}
+  \scriptsize
+  % eleven columns; the stock 6pt gutter put it 13.6pt past the text block
+  \setlength{\tabcolsep}{4pt}
+  \input{tab_operators}
+\end{table}
+\end{document}

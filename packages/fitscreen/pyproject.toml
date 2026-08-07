@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fitscreen"
+version = "0.1.0"
+description = "Candidate finder for delta-aware sparse recomputation: screens an event-log trace against the six-condition fit envelope."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+authors = [{ name = "fitscreen contributors" }]
+keywords = ["sparse", "delta", "screening", "workload", "fit"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering",
+]
+# Standard library only, on purpose: this is the first thing a stranger runs,
+# often on an edge node or in a bare container, and it must not fail on a
+# missing wheel. Adding a dependency here is a decision, not a convenience.
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+# [project.urls] deliberately omitted until the public home is decided.
+# Shipping a Homepage that 404s is worse than shipping none.
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

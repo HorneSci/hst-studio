@@ -1,0 +1,25 @@
+{
+  "name": "@hornesci/hstcore",
+  "version": "0.1.0",
+  "description": "Bindings for the HST-core Embedded ABI. Binds libhstcore, a shared library this package does not contain -- Apache-2.0 and unmetered in an HST Studio download's bin/, gated only in a separate metered build of the same library; this package is only the binding.",
+  "type": "module",
+  "main": "index.mjs",
+  "exports": {
+    ".": "./index.mjs"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "dependencies": {
+    "koffi": "^2.9.0"
+  },
+  "files": [
+    "index.mjs",
+    "README.md",
+    "LICENSE"
+  ]
+}

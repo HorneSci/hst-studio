@@ -1,0 +1,84 @@
+{
+  "schema": "hst-evidence/cases-manifest-v1",
+  "variant": "public",
+  "note": [
+    "This file is the ONLY thing that decides which cases exist, which operators",
+    "they use, which grade they carry and which of them are adversarial. The",
+    "generator (tools/gen_cases.py) takes --manifest, so a private superset is a",
+    "second manifest file against the same generator -- a configuration, not a",
+    "fork. Nothing downstream of here reads a hardcoded case list.",
+    "",
+    "Ordering rule for the set: the integer-exact cases come first because they",
+    "are the only ones whose GRADE-A holds under any summation order, and the",
+    "adversarial cases are published because a set with no losing cells in it is",
+    "not evidence."
+  ],
+  "defaults": {
+    "steps": 6,
+    "drift_rho": 0.25,
+    "dx_generator": "dx_v1"
+  },
+  "cases": [
+    { "id": "INT-01", "operator": "bcspwr09", "value_rule": "pattern_int_v1",
+      "x0_generator": "x0_int_v1", "x0_seed": 1101, "dx_seed": 9101,
+      "batch": 1, "motion": "frozen",    "dirty_fraction": 0.02, "grade": "GRADE-A",
+      "why": "integer-exact, frozen dirty set -- the control case" },
+
+    { "id": "INT-02", "operator": "bcspwr10", "value_rule": "pattern_int_v1",
+      "x0_generator": "x0_int_v1", "x0_seed": 1102, "dx_seed": 9102,
+      "batch": 1, "motion": "drift",     "dirty_fraction": 0.02, "grade": "GRADE-A",
+      "why": "integer-exact, drifting dirty set at the measured-supported rho" },
+
+    { "id": "INT-03", "operator": "add32", "value_rule": "pattern_int_v1",
+      "x0_generator": "x0_int_v1", "x0_seed": 1103, "dx_seed": 9103,
+      "batch": 4, "motion": "drift",     "dirty_fraction": 0.05, "grade": "GRADE-A",
+      "why": "integer-exact with batch > 1 -- catches offset-width and stride bugs" },
+
+    { "id": "INT-04", "operator": "nasa2910", "value_rule": "pattern_int_v1",
+      "x0_generator": "x0_int_v1", "x0_seed": 1104, "dx_seed": 9104,
+      "batch": 1, "motion": "drift",     "dirty_fraction": 0.10, "grade": "GRADE-A",
+      "why": "integer-exact on a dense-blocked structural operator" },
+
+    { "id": "INT-05", "operator": "rajat03", "value_rule": "pattern_int_v1",
+      "x0_generator": "x0_int_v1", "x0_seed": 1105, "dx_seed": 9105,
+      "batch": 8, "motion": "drift",     "dirty_fraction": 0.05, "grade": "GRADE-A",
+      "why": "integer-exact at the widest batch in the public set" },
+
+    { "id": "INT-06", "operator": "bcspwr10", "value_rule": "pattern_int_v1",
+      "x0_generator": "x0_int_v1", "x0_seed": 1106, "dx_seed": 9106,
+      "batch": 4, "motion": "scattered", "dirty_fraction": 0.05, "grade": "GRADE-A",
+      "why": "integer-exact with no locality at all -- exactness must not depend on it" },
+
+    { "id": "F64-01", "operator": "bcspwr09", "value_rule": "values_f64_v1",
+      "x0_generator": "x0_f64_v1", "x0_seed": 2101, "dx_seed": 8101,
+      "batch": 1, "motion": "drift",     "dirty_fraction": 0.02, "grade": "GRADE-A",
+      "why": "f64 byte-identical -- passes only if the stated summation order is used" },
+
+    { "id": "F64-02", "operator": "add32", "value_rule": "values_f64_v1",
+      "x0_generator": "x0_f64_v1", "x0_seed": 2102, "dx_seed": 8102,
+      "batch": 1, "motion": "drift",     "dirty_fraction": 0.05, "grade": "GRADE-A",
+      "why": "f64 byte-identical on real circuit-simulation values" },
+
+    { "id": "F64-03", "operator": "nasa2910", "value_rule": "values_f64_v1",
+      "x0_generator": "x0_f64_v1", "x0_seed": 2103, "dx_seed": 8103,
+      "batch": 1, "motion": "frozen",    "dirty_fraction": 0.05, "grade": "GRADE-A",
+      "why": "f64 byte-identical, frozen -- the f64 control" },
+
+    { "id": "F64-04", "operator": "rajat03", "value_rule": "values_f64_v1",
+      "x0_generator": "x0_f64_v1", "x0_seed": 2104, "dx_seed": 8104,
+      "batch": 4, "motion": "drift",     "dirty_fraction": 0.05, "grade": "GRADE-A",
+      "why": "f64 byte-identical with batch > 1" },
+
+    { "id": "ADV-01", "operator": "memplus", "value_rule": "values_f64_v1",
+      "x0_generator": "x0_f64_v1", "x0_seed": 3101, "dx_seed": 7101,
+      "batch": 1, "motion": "scattered", "dirty_fraction": 0.85, "grade": "GRADE-B",
+      "adversarial": true,
+      "why": "ADVERSARIAL: 85% of columns dirty, fresh scatter every step. This is the regime a delta approach is supposed to lose in; it is published for that reason." },
+
+    { "id": "ADV-02", "operator": "nasa2910", "value_rule": "values_f64_v1",
+      "x0_generator": "x0_f64_v1", "x0_seed": 3102, "dx_seed": 7102,
+      "batch": 4, "motion": "scattered", "dirty_fraction": 0.70, "grade": "GRADE-B",
+      "adversarial": true,
+      "why": "ADVERSARIAL: 70% dirty, scattered, batch 4, on the densest operator in the set." }
+  ]
+}

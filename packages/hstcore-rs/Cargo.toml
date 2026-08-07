@@ -1,0 +1,15 @@
+[workspace]
+resolver = "2"
+members = ["hstcore-sys", "hstcore", "test-stub"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+license = "Apache-2.0"
+repository = "https://github.com/HorneSci/hstcore-rs"
+
+[workspace.dependencies]
+libloading = "0.8"
+libc = "0.2"
+thiserror = "2"

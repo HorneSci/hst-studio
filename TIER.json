@@ -1,0 +1,31 @@
+{
+  "build": "community",
+  "displayName": "HST Studio Community",
+  "profiles": [
+    "P1"
+  ],
+  "tune": "advisory",
+  "tiersManifestSha256": "5cb9b7c78e934d9606562ad0d0af16771e426676422000dbb603113747762395",
+  "runtimePlatforms": [
+    "libhstcore.so",
+    "libhstcore.dylib"
+  ],
+  "runtimeArchitectures": {
+    "libhstcore.so": "x86-64",
+    "libhstcore.dylib": "arm64"
+  },
+  "runtimeTools": [
+    "hst-compile.darwin-arm64",
+    "hst-compile.linux-x86_64",
+    "hst_compare.darwin-arm64",
+    "hst_compare.linux-x86_64"
+  ],
+  "license": {
+    "wrappers": "Apache-2.0",
+    "binary": "Apache-2.0",
+    "productionUse": true,
+    "note": "Free, in the sense the word is normally used: no token, no meter, no expiry, production use permitted, redistribution permitted. The paywall is the absence of Profile 3, not a lock on Profile 1. Changed 2026-08-06 from EULA-noncommercial + capped eval token, which made this an evaluation rather than a product."
+  },
+  "namedGap": "This is the HST Studio Community build (Profile 1). The Enterprise build adds Profile 3, whose measured advantage is churn-dependent. Whole-lane, on one machine and one compiler: 0.95-8.53x under churn, and ~1.00x -- parity -- when the dirty set is frozen. Both figures are whole-lane, which is what a caller pays; Profile 3's kernel alone is slower in every regime (geomean 0.89x frozen), so its advantage is fewer schedule rebuilds rather than faster arithmetic. Numbers from this build are a floor, not a ceiling.",
+  "generated": "2026-08-07"
+}

@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "claimlint"
+version = "0.1.0"
+description = "statcheck for performance claims: report ratio-shaped figures whose conditions are not stated nearby."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+keywords = ["linter", "benchmarks", "reproducibility", "documentation", "claims"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Documentation",
+  "Topic :: Software Development :: Quality Assurance",
+]
+# Standard library only. `tomllib` is why the floor is 3.11. A linter you have
+# to install a dependency tree for is a linter that does not get run in CI.
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+claimlint = "claimlint.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+claimlint = ["profiles/*.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

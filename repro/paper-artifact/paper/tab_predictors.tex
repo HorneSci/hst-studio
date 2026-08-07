@@ -1,0 +1,59 @@
+\begin{tabular}{llccccc}
+\toprule
+features & model & LOMO acc. & in-sample & \multicolumn{3}{c}{regret vs oracle}\\
+\cmidrule(lr){5-7}
+ & & & & geomean & p90 & worst \\
+\midrule
+\multicolumn{7}{l}{\emph{local drift --- workload mix (frozen + churning)}}\\
+\midrule
+--- & always column-exact & 0.195 & 0.195 & 3.944 & 22.36 & 35.57 \\
+--- & always block-scheduled & 0.805 & 0.805 & 1.159 & 1.87 & 5.85 \\
+structure & 1-D threshold (tree d=1) & 0.805 & 0.805 & 1.159 & 1.87 & 5.85 \\
+structure & decision tree d=3 & 0.805 & 0.805 & 1.159 & 1.87 & 5.85 \\
+structure & logistic regression & 0.805 & 0.805 & 1.159 & 1.87 & 5.85 \\
+structure & kNN (k=5) & 0.793 & 0.753 & 1.198 & 2.37 & 13.45 \\
+structure & random forest (300) & 0.805 & 0.805 & 1.159 & 1.87 & 5.85 \\
+structure & gradient boosting & 0.805 & 0.805 & 1.159 & 1.87 & 5.85 \\
+observed $\rho$ & 1-D threshold (tree d=1) & 0.994 & 0.994 & 1.000 & 1.00 & 1.01 \\
+observed $\rho$ & decision tree d=3 & 0.994 & 0.994 & 1.000 & 1.00 & 1.01 \\
+observed $\rho$ & logistic regression & 0.805 & 0.805 & 1.159 & 1.87 & 5.85 \\
+observed $\rho$ & kNN (k=5) & 0.803 & 0.805 & 1.159 & 1.87 & 5.85 \\
+observed $\rho$ & random forest (300) & 0.994 & 0.994 & 1.000 & 1.00 & 1.01 \\
+observed $\rho$ & gradient boosting & 0.994 & 0.994 & 1.000 & 1.00 & 1.01 \\
+both & 1-D threshold (tree d=1) & 0.994 & 0.994 & 1.000 & 1.00 & 1.01 \\
+both & decision tree d=3 & 0.985 & 0.996 & 1.003 & 1.00 & 1.40 \\
+both & logistic regression & 0.805 & 0.805 & 1.159 & 1.87 & 5.85 \\
+both & kNN (k=5) & 0.847 & 0.893 & 1.138 & 1.68 & 5.85 \\
+both & random forest (300) & 0.994 & 0.998 & 1.000 & 1.00 & 1.01 \\
+both & gradient boosting & 0.985 & 0.998 & 1.003 & 1.00 & 1.40 \\
+\cmidrule(lr){1-7}
+\multicolumn{2}{l}{\textbf{measured router (steady)}} & 0.994 & --- & \textbf{1.079} & 1.17 & \textbf{3.09} \\
+\multicolumn{2}{l}{\textbf{measured router (+calib)}} & 0.994 & --- & \textbf{1.330} & 1.64 & \textbf{3.68} \\
+\midrule
+\multicolumn{7}{l}{\emph{uniform jump --- workload mix (frozen + churning)}}\\
+\midrule
+--- & always column-exact & 0.393 & 0.393 & 1.780 & 4.48 & 19.92 \\
+--- & always block-scheduled & 0.607 & 0.607 & 1.227 & 2.03 & 5.87 \\
+structure & 1-D threshold (tree d=1) & 0.702 & 0.731 & 1.144 & 1.73 & 6.84 \\
+structure & decision tree d=3 & 0.683 & 0.769 & 1.152 & 1.74 & 6.84 \\
+structure & logistic regression & 0.683 & 0.758 & 1.150 & 1.76 & 4.55 \\
+structure & kNN (k=5) & 0.637 & 0.720 & 1.195 & 1.87 & 4.48 \\
+structure & random forest (300) & 0.672 & 0.771 & 1.156 & 1.76 & 4.55 \\
+structure & gradient boosting & 0.662 & 0.771 & 1.169 & 1.79 & 12.41 \\
+observed $\rho$ & 1-D threshold (tree d=1) & 0.788 & 0.788 & 1.056 & 1.24 & 2.40 \\
+observed $\rho$ & decision tree d=3 & 0.788 & 0.788 & 1.056 & 1.24 & 2.40 \\
+observed $\rho$ & logistic regression & 0.607 & 0.607 & 1.227 & 2.03 & 5.87 \\
+observed $\rho$ & kNN (k=5) & 0.578 & 0.424 & 1.250 & 2.24 & 5.87 \\
+observed $\rho$ & random forest (300) & 0.788 & 0.788 & 1.056 & 1.24 & 2.40 \\
+observed $\rho$ & gradient boosting & 0.788 & 0.788 & 1.056 & 1.24 & 2.40 \\
+both & 1-D threshold (tree d=1) & 0.788 & 0.788 & 1.056 & 1.24 & 2.40 \\
+both & decision tree d=3 & 0.824 & 0.906 & 1.049 & 1.15 & 3.96 \\
+both & logistic regression & 0.679 & 0.759 & 1.152 & 1.76 & 4.55 \\
+both & kNN (k=5) & 0.691 & 0.882 & 1.158 & 1.74 & 4.41 \\
+both & random forest (300) & 0.880 & 1.000 & 1.030 & 1.05 & 2.03 \\
+both & gradient boosting & 0.882 & 0.992 & 1.032 & 1.05 & 3.96 \\
+\cmidrule(lr){1-7}
+\multicolumn{2}{l}{\textbf{measured router (steady)}} & 0.885 & --- & \textbf{1.076} & 1.19 & \textbf{1.91} \\
+\multicolumn{2}{l}{\textbf{measured router (+calib)}} & 0.885 & --- & \textbf{1.281} & 1.64 & \textbf{2.75} \\
+\bottomrule
+\end{tabular}

@@ -1,0 +1,80 @@
+{
+  "schema": "hst-evidence/case-v1",
+  "case_id": "F64-01",
+  "grade": "GRADE-A",
+  "precision": "f64",
+  "batch": 1,
+  "adversarial": false,
+  "why": "f64 byte-identical -- passes only if the stated summation order is used",
+  "operator": {
+    "source": "suitesparse",
+    "group": "HB",
+    "name": "bcspwr09",
+    "url": "https://suitesparse-collection-website.herokuapp.com/MM/HB/bcspwr09.tar.gz",
+    "mtx_sha256": "c396a96af9aab55af84522dd1b8d95ecb87c9c4b014f3597bc4f55067930b1ea",
+    "matrix_market_field": "pattern",
+    "matrix_market_symmetry": "symmetric",
+    "rows": 1723,
+    "cols": 1723,
+    "nnz_after_preprocessing": 6511
+  },
+  "preprocessing": {
+    "value_rule": "values_f64_v1",
+    "description": "A `symmetric` Matrix Market file stores one triangle: each off-diagonal (i,j) contributes both (i,j) and (j,i); a diagonal entry contributes once. Stored values are used as-is; a `pattern` file gives 1.0.",
+    "duplicate_coordinates": "none present; asserted at generation time"
+  },
+  "x0_generator": "x0_f64_v1",
+  "x0_seed": 2101,
+  "x0_description": "x0[j][b] = 2u-1 where u = (SplitMix64(x0_seed).next() >> 11) * 2^-53, drawn in j-major then b order",
+  "dx": {
+    "file": "dx.bin",
+    "generator": "dx_v1",
+    "seed": 8101,
+    "steps": 6,
+    "motion": "drift",
+    "drift_rho": 0.25,
+    "dirty_fraction": 0.02,
+    "dirty_columns_per_step": 34,
+    "value_domain": "f64 in [-1,1)",
+    "format": "GVDX0001, little-endian; layout documented in README.md",
+    "description": "dx_v1: rng = SplitMix64(seed). k = max(1, round(dirty_fraction * cols)). A column set is drawn by repeatedly taking rng.next() mod cols and rejecting repeats, then sorting ascending. Step 0 draws such a set. motion=frozen keeps it; motion=scattered draws a fresh set every step; motion=drift replaces the r = max(1, round(drift_rho * k)) lowest-indexed members with freshly drawn columns not already retained, then re-sorts. Values are emitted per (position in the dirty set, batch lane), position major."
+  },
+  "reference": {
+    "summation_order": "CSC. Columns ascending; within a column, row indices ascending; y[i*B+b] += A[i,j] * x[j*B+b] applied in exactly that sequence, with b ascending innermost. The delta apply uses the same order restricted to the dirty columns, taken ascending, and accumulates into the running y.",
+    "implementations": [
+      "reference/reference_spmv.py",
+      "reference/reference_spmv.c"
+    ]
+  },
+  "verification": {
+    "rel_l2_bound": 0.0,
+    "order_independent": false,
+    "exactness_argument": "Byte-identical, and achievable ONLY because the summation order is specified. A correct implementation that sums in a different order will fail this case -- see the measured disagreement with a row-major order recorded below. GRADE-A on an f64 case is a strictness test, not a correctness test.",
+    "max_abs_accumulator": null,
+    "exactly_representable_below": null,
+    "observed_rel_l2_between_orders": 1.3494824736614033e-17,
+    "observed_bit_differences_between_orders": 9
+  },
+  "outputs": {
+    "dx.bin": {
+      "sha256": "6b9acc5b95098cb8f0d9e3970913e6d7eb512ffa42da6615494807dcfeee57e8"
+    },
+    "y0.f64.bin": {
+      "shape": [
+        1723,
+        1
+      ],
+      "dtype": "<f8",
+      "sha256": "32fef6301ad7fe3a068bb660a877580073ac20eebf3d815ce981e6f7849dbb4e"
+    },
+    "y.f64.bin": {
+      "shape": [
+        6,
+        1723,
+        1
+      ],
+      "dtype": "<f8",
+      "sha256": "b33fed780470a08532243e6d7d8edf260b449b5a7977d2f861bb76b1342bcfc0"
+    }
+  }
+}

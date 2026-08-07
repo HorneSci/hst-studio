@@ -1,0 +1,136 @@
+churn_model,scope,procedure,a,b,statistic,delta,ci_lo,ci_hi,significant,n_cells,n_operators
+drift,workload mix (frozen + churning),O3 score-restricted [operator median replicate floor] vs steady,1-D threshold (tree d=1) [both],router (steady),geomean regret,-0.08147,-0.1045,-0.05731,1,514,21
+drift,workload mix (frozen + churning),O3 score-restricted [operator median replicate floor] vs steady,1-D threshold (tree d=1) [both],router (steady),worst-case regret,-1.53262,-2.08983,-0.34945,1,514,21
+drift,workload mix (frozen + churning),O3 score-restricted [operator median replicate floor] vs steady,1-D threshold (tree d=1) [both],router (steady),accuracy,0.0,0.0,0.0,0,514,21
+drift,workload mix (frozen + churning),O3 score-restricted [operator median replicate floor] vs +calib,1-D threshold (tree d=1) [both],router (+calibration),geomean regret,-0.33726,-0.41138,-0.27722,1,514,21
+drift,workload mix (frozen + churning),O3 score-restricted [operator median replicate floor] vs +calib,1-D threshold (tree d=1) [both],router (+calibration),worst-case regret,-2.36104,-2.68004,-0.8573,1,514,21
+drift,workload mix (frozen + churning),O3 score-restricted [operator median replicate floor] vs +calib,1-D threshold (tree d=1) [both],router (+calibration),accuracy,0.0,0.0,0.0,0,514,21
+drift,workload mix (frozen + churning),O3 fit-restricted [operator median replicate floor] vs steady,"1-D threshold (tree d=1) [both, refit]",router (steady),geomean regret,-0.08147,-0.1045,-0.05731,1,514,21
+drift,workload mix (frozen + churning),O3 fit-restricted [operator median replicate floor] vs steady,"1-D threshold (tree d=1) [both, refit]",router (steady),worst-case regret,-1.53262,-2.08983,-0.34945,1,514,21
+drift,workload mix (frozen + churning),O3 fit-restricted [operator median replicate floor] vs steady,"1-D threshold (tree d=1) [both, refit]",router (steady),accuracy,0.0,0.0,0.0,0,514,21
+drift,workload mix (frozen + churning),O3 fit-restricted [operator median replicate floor] vs +calib,"1-D threshold (tree d=1) [both, refit]",router (+calibration),geomean regret,-0.33726,-0.41138,-0.27722,1,514,21
+drift,workload mix (frozen + churning),O3 fit-restricted [operator median replicate floor] vs +calib,"1-D threshold (tree d=1) [both, refit]",router (+calibration),worst-case regret,-2.36104,-2.68004,-0.8573,1,514,21
+drift,workload mix (frozen + churning),O3 fit-restricted [operator median replicate floor] vs +calib,"1-D threshold (tree d=1) [both, refit]",router (+calibration),accuracy,0.0,0.0,0.0,0,514,21
+drift,workload mix (frozen + churning),O3 pre-registered [operator median replicate floor] vs steady,"logistic regression [both, refit]",router (steady),geomean regret,0.08016,0.04562,0.1146,1,514,21
+drift,workload mix (frozen + churning),O3 pre-registered [operator median replicate floor] vs steady,"logistic regression [both, refit]",router (steady),worst-case regret,2.76649,0.76558,4.50205,1,514,21
+drift,workload mix (frozen + churning),O3 pre-registered [operator median replicate floor] vs steady,"logistic regression [both, refit]",router (steady),accuracy,-0.18647,-0.2,-0.16466,1,514,21
+drift,workload mix (frozen + churning),O3 score-restricted [operator worst replicate floor] vs steady,1-D threshold (tree d=1) [both],router (steady),geomean regret,-0.08121,-0.10466,-0.05729,1,506,21
+drift,workload mix (frozen + churning),O3 score-restricted [operator worst replicate floor] vs steady,1-D threshold (tree d=1) [both],router (steady),worst-case regret,-1.53262,-2.08983,-0.34945,1,506,21
+drift,workload mix (frozen + churning),O3 score-restricted [operator worst replicate floor] vs steady,1-D threshold (tree d=1) [both],router (steady),accuracy,0.0,0.0,0.0,0,506,21
+drift,workload mix (frozen + churning),O3 score-restricted [operator worst replicate floor] vs +calib,1-D threshold (tree d=1) [both],router (+calibration),geomean regret,-0.33362,-0.40659,-0.276,1,506,21
+drift,workload mix (frozen + churning),O3 score-restricted [operator worst replicate floor] vs +calib,1-D threshold (tree d=1) [both],router (+calibration),worst-case regret,-2.36104,-2.68004,-0.8573,1,506,21
+drift,workload mix (frozen + churning),O3 score-restricted [operator worst replicate floor] vs +calib,1-D threshold (tree d=1) [both],router (+calibration),accuracy,0.0,0.0,0.0,0,506,21
+drift,workload mix (frozen + churning),O3 fit-restricted [operator worst replicate floor] vs steady,"1-D threshold (tree d=1) [both, refit]",router (steady),geomean regret,-0.08121,-0.10466,-0.05729,1,506,21
+drift,workload mix (frozen + churning),O3 fit-restricted [operator worst replicate floor] vs steady,"1-D threshold (tree d=1) [both, refit]",router (steady),worst-case regret,-1.53262,-2.08983,-0.34945,1,506,21
+drift,workload mix (frozen + churning),O3 fit-restricted [operator worst replicate floor] vs steady,"1-D threshold (tree d=1) [both, refit]",router (steady),accuracy,0.0,0.0,0.0,0,506,21
+drift,workload mix (frozen + churning),O3 fit-restricted [operator worst replicate floor] vs +calib,"1-D threshold (tree d=1) [both, refit]",router (+calibration),geomean regret,-0.33362,-0.40659,-0.276,1,506,21
+drift,workload mix (frozen + churning),O3 fit-restricted [operator worst replicate floor] vs +calib,"1-D threshold (tree d=1) [both, refit]",router (+calibration),worst-case regret,-2.36104,-2.68004,-0.8573,1,506,21
+drift,workload mix (frozen + churning),O3 fit-restricted [operator worst replicate floor] vs +calib,"1-D threshold (tree d=1) [both, refit]",router (+calibration),accuracy,0.0,0.0,0.0,0,506,21
+drift,workload mix (frozen + churning),O3 pre-registered [operator worst replicate floor] vs steady,"logistic regression [both, refit]",router (steady),geomean regret,0.08311,0.04707,0.11873,1,506,21
+drift,workload mix (frozen + churning),O3 pre-registered [operator worst replicate floor] vs steady,"logistic regression [both, refit]",router (steady),worst-case regret,2.76649,0.76558,4.50205,1,506,21
+drift,workload mix (frozen + churning),O3 pre-registered [operator worst replicate floor] vs steady,"logistic regression [both, refit]",router (steady),accuracy,-0.18739,-0.20548,-0.16293,1,506,21
+drift,workload mix (frozen + churning),O3 score-restricted [flat 10% parity band] vs steady,1-D threshold (tree d=1) [both],router (steady),geomean regret,-0.08181,-0.10506,-0.05748,1,513,21
+drift,workload mix (frozen + churning),O3 score-restricted [flat 10% parity band] vs steady,1-D threshold (tree d=1) [both],router (steady),worst-case regret,-1.53262,-2.08983,-0.34945,1,513,21
+drift,workload mix (frozen + churning),O3 score-restricted [flat 10% parity band] vs steady,1-D threshold (tree d=1) [both],router (steady),accuracy,0.0,0.0,0.0,0,513,21
+drift,workload mix (frozen + churning),O3 score-restricted [flat 10% parity band] vs +calib,1-D threshold (tree d=1) [both],router (+calibration),geomean regret,-0.33801,-0.41334,-0.27736,1,513,21
+drift,workload mix (frozen + churning),O3 score-restricted [flat 10% parity band] vs +calib,1-D threshold (tree d=1) [both],router (+calibration),worst-case regret,-2.36104,-2.68004,-0.8573,1,513,21
+drift,workload mix (frozen + churning),O3 score-restricted [flat 10% parity band] vs +calib,1-D threshold (tree d=1) [both],router (+calibration),accuracy,0.0,0.0,0.0,0,513,21
+drift,workload mix (frozen + churning),O3 fit-restricted [flat 10% parity band] vs steady,"1-D threshold (tree d=1) [both, refit]",router (steady),geomean regret,-0.08181,-0.10506,-0.05748,1,513,21
+drift,workload mix (frozen + churning),O3 fit-restricted [flat 10% parity band] vs steady,"1-D threshold (tree d=1) [both, refit]",router (steady),worst-case regret,-1.53262,-2.08983,-0.34945,1,513,21
+drift,workload mix (frozen + churning),O3 fit-restricted [flat 10% parity band] vs steady,"1-D threshold (tree d=1) [both, refit]",router (steady),accuracy,0.0,0.0,0.0,0,513,21
+drift,workload mix (frozen + churning),O3 fit-restricted [flat 10% parity band] vs +calib,"1-D threshold (tree d=1) [both, refit]",router (+calibration),geomean regret,-0.33801,-0.41334,-0.27736,1,513,21
+drift,workload mix (frozen + churning),O3 fit-restricted [flat 10% parity band] vs +calib,"1-D threshold (tree d=1) [both, refit]",router (+calibration),worst-case regret,-2.36104,-2.68004,-0.8573,1,513,21
+drift,workload mix (frozen + churning),O3 fit-restricted [flat 10% parity band] vs +calib,"1-D threshold (tree d=1) [both, refit]",router (+calibration),accuracy,0.0,0.0,0.0,0,513,21
+drift,workload mix (frozen + churning),O3 pre-registered [flat 10% parity band] vs steady,"logistic regression [both, refit]",router (steady),geomean regret,0.08008,0.04524,0.11462,1,513,21
+drift,workload mix (frozen + churning),O3 pre-registered [flat 10% parity band] vs steady,"logistic regression [both, refit]",router (steady),worst-case regret,2.76649,0.76558,4.50205,1,513,21
+drift,workload mix (frozen + churning),O3 pre-registered [flat 10% parity band] vs steady,"logistic regression [both, refit]",router (steady),accuracy,-0.18485,-0.2,-0.16129,1,513,21
+jump,churning only,O3 score-restricted [operator median replicate floor] vs steady,gradient boosting [both],router (steady),geomean regret,-0.06494,-0.09317,-0.0402,1,410,21
+jump,churning only,O3 score-restricted [operator median replicate floor] vs steady,gradient boosting [both],router (steady),worst-case regret,-0.33877,-0.63319,0.01606,0,410,21
+jump,churning only,O3 score-restricted [operator median replicate floor] vs steady,gradient boosting [both],router (steady),accuracy,0.0197,-0.05263,0.08293,0,410,21
+jump,churning only,O3 score-restricted [operator median replicate floor] vs +calib,gradient boosting [both],router (+calibration),geomean regret,-0.31165,-0.40468,-0.23501,1,410,21
+jump,churning only,O3 score-restricted [operator median replicate floor] vs +calib,gradient boosting [both],router (+calibration),worst-case regret,-1.1513,-1.4682,-0.46274,1,410,21
+jump,churning only,O3 score-restricted [operator median replicate floor] vs +calib,gradient boosting [both],router (+calibration),accuracy,0.0197,-0.05263,0.08293,0,410,21
+jump,churning only,O3 fit-restricted [operator median replicate floor] vs steady,"random forest (300) [both, refit]",router (steady),geomean regret,-0.06458,-0.0893,-0.04126,1,410,21
+jump,churning only,O3 fit-restricted [operator median replicate floor] vs steady,"random forest (300) [both, refit]",router (steady),worst-case regret,-0.20966,-0.25556,-0.0181,1,410,21
+jump,churning only,O3 fit-restricted [operator median replicate floor] vs steady,"random forest (300) [both, refit]",router (steady),accuracy,0.02227,-0.0489,0.08353,0,410,21
+jump,churning only,O3 fit-restricted [operator median replicate floor] vs +calib,"random forest (300) [both, refit]",router (+calibration),geomean regret,-0.31129,-0.40142,-0.23633,1,410,21
+jump,churning only,O3 fit-restricted [operator median replicate floor] vs +calib,"random forest (300) [both, refit]",router (+calibration),worst-case regret,-1.02219,-1.48463,-0.46274,1,410,21
+jump,churning only,O3 fit-restricted [operator median replicate floor] vs +calib,"random forest (300) [both, refit]",router (+calibration),accuracy,0.02227,-0.0489,0.08353,0,410,21
+jump,churning only,O3 pre-registered [operator median replicate floor] vs steady,"logistic regression [both, refit]",router (steady),geomean regret,-0.06052,-0.08144,-0.03954,1,410,21
+jump,churning only,O3 pre-registered [operator median replicate floor] vs steady,"logistic regression [both, refit]",router (steady),worst-case regret,-0.16837,-0.19892,0.01606,0,410,21
+jump,churning only,O3 pre-registered [operator median replicate floor] vs steady,"logistic regression [both, refit]",router (steady),accuracy,-0.02396,-0.08189,0.02764,0,410,21
+jump,churning only,O3 score-restricted [operator worst replicate floor] vs steady,gradient boosting [both],router (steady),geomean regret,-0.06153,-0.08902,-0.03759,1,378,21
+jump,churning only,O3 score-restricted [operator worst replicate floor] vs steady,gradient boosting [both],router (steady),worst-case regret,-0.33966,-0.64962,0.01606,0,378,21
+jump,churning only,O3 score-restricted [operator worst replicate floor] vs steady,gradient boosting [both],router (steady),accuracy,0.01144,-0.06217,0.07827,0,378,21
+jump,churning only,O3 score-restricted [operator worst replicate floor] vs +calib,gradient boosting [both],router (+calibration),geomean regret,-0.30889,-0.40171,-0.23125,1,378,21
+jump,churning only,O3 score-restricted [operator worst replicate floor] vs +calib,gradient boosting [both],router (+calibration),worst-case regret,-1.15219,-1.48463,-0.46274,1,378,21
+jump,churning only,O3 score-restricted [operator worst replicate floor] vs +calib,gradient boosting [both],router (+calibration),accuracy,0.01144,-0.06217,0.07827,0,378,21
+jump,churning only,O3 fit-restricted [operator worst replicate floor] vs steady,"logistic regression [both, refit]",router (steady),geomean regret,-0.05987,-0.08576,-0.03697,1,378,21
+jump,churning only,O3 fit-restricted [operator worst replicate floor] vs steady,"logistic regression [both, refit]",router (steady),worst-case regret,-0.33878,-0.61282,0.01606,0,378,21
+jump,churning only,O3 fit-restricted [operator worst replicate floor] vs steady,"logistic regression [both, refit]",router (steady),accuracy,-0.00999,-0.07602,0.05398,0,378,21
+jump,churning only,O3 fit-restricted [operator worst replicate floor] vs +calib,"logistic regression [both, refit]",router (+calibration),geomean regret,-0.30723,-0.39886,-0.2301,1,378,21
+jump,churning only,O3 fit-restricted [operator worst replicate floor] vs +calib,"logistic regression [both, refit]",router (+calibration),worst-case regret,-1.15131,-1.44783,-0.46274,1,378,21
+jump,churning only,O3 fit-restricted [operator worst replicate floor] vs +calib,"logistic regression [both, refit]",router (+calibration),accuracy,-0.00999,-0.07602,0.05398,0,378,21
+jump,churning only,O3 pre-registered [operator worst replicate floor] vs steady,"logistic regression [both, refit]",router (steady),geomean regret,-0.05987,-0.08576,-0.03697,1,378,21
+jump,churning only,O3 pre-registered [operator worst replicate floor] vs steady,"logistic regression [both, refit]",router (steady),worst-case regret,-0.33878,-0.61282,0.01606,0,378,21
+jump,churning only,O3 pre-registered [operator worst replicate floor] vs steady,"logistic regression [both, refit]",router (steady),accuracy,-0.00999,-0.07602,0.05398,0,378,21
+jump,churning only,O3 score-restricted [flat 10% parity band] vs steady,gradient boosting [both],router (steady),geomean regret,-0.06008,-0.09103,-0.03483,1,366,21
+jump,churning only,O3 score-restricted [flat 10% parity band] vs steady,gradient boosting [both],router (steady),worst-case regret,-0.33878,-0.63319,0.01698,0,366,21
+jump,churning only,O3 score-restricted [flat 10% parity band] vs steady,gradient boosting [both],router (steady),accuracy,0.00084,-0.07223,0.06857,0,366,21
+jump,churning only,O3 score-restricted [flat 10% parity band] vs +calib,gradient boosting [both],router (+calibration),geomean regret,-0.31467,-0.4178,-0.23004,1,366,21
+jump,churning only,O3 score-restricted [flat 10% parity band] vs +calib,gradient boosting [both],router (+calibration),worst-case regret,-1.15134,-1.4682,-0.46274,1,366,21
+jump,churning only,O3 score-restricted [flat 10% parity band] vs +calib,gradient boosting [both],router (+calibration),accuracy,0.00084,-0.07223,0.06857,0,366,21
+jump,churning only,O3 fit-restricted [flat 10% parity band] vs steady,"logistic regression [both, refit]",router (steady),geomean regret,-0.06507,-0.09747,-0.03752,1,366,21
+jump,churning only,O3 fit-restricted [flat 10% parity band] vs steady,"logistic regression [both, refit]",router (steady),worst-case regret,-0.33922,-0.61282,0.01698,0,366,21
+jump,churning only,O3 fit-restricted [flat 10% parity band] vs steady,"logistic regression [both, refit]",router (steady),accuracy,0.02429,-0.03868,0.09092,0,366,21
+jump,churning only,O3 fit-restricted [flat 10% parity band] vs +calib,"logistic regression [both, refit]",router (+calibration),geomean regret,-0.31966,-0.42352,-0.23186,1,366,21
+jump,churning only,O3 fit-restricted [flat 10% parity band] vs +calib,"logistic regression [both, refit]",router (+calibration),worst-case regret,-1.15178,-1.44783,-0.46274,1,366,21
+jump,churning only,O3 fit-restricted [flat 10% parity band] vs +calib,"logistic regression [both, refit]",router (+calibration),accuracy,0.02429,-0.03868,0.09092,0,366,21
+jump,churning only,O3 pre-registered [flat 10% parity band] vs steady,"logistic regression [both, refit]",router (steady),geomean regret,-0.06507,-0.09747,-0.03752,1,366,21
+jump,churning only,O3 pre-registered [flat 10% parity band] vs steady,"logistic regression [both, refit]",router (steady),worst-case regret,-0.33922,-0.61282,0.01698,0,366,21
+jump,churning only,O3 pre-registered [flat 10% parity band] vs steady,"logistic regression [both, refit]",router (steady),accuracy,0.02429,-0.03868,0.09092,0,366,21
+jump,workload mix (frozen + churning),O3 score-restricted [operator median replicate floor] vs steady,random forest (300) [both],router (steady),geomean regret,-0.04633,-0.07138,-0.0216,1,512,21
+jump,workload mix (frozen + churning),O3 score-restricted [operator median replicate floor] vs steady,random forest (300) [both],router (steady),worst-case regret,0.12353,-0.16681,0.51923,0,512,21
+jump,workload mix (frozen + churning),O3 score-restricted [operator median replicate floor] vs steady,random forest (300) [both],router (steady),accuracy,-0.00509,-0.06446,0.04962,0,512,21
+jump,workload mix (frozen + churning),O3 score-restricted [operator median replicate floor] vs +calib,random forest (300) [both],router (+calibration),geomean regret,-0.25418,-0.31781,-0.1962,1,512,21
+jump,workload mix (frozen + churning),O3 score-restricted [operator median replicate floor] vs +calib,random forest (300) [both],router (+calibration),worst-case regret,-0.689,-1.41855,-0.12971,1,512,21
+jump,workload mix (frozen + churning),O3 score-restricted [operator median replicate floor] vs +calib,random forest (300) [both],router (+calibration),accuracy,-0.00509,-0.06446,0.04962,0,512,21
+jump,workload mix (frozen + churning),O3 fit-restricted [operator median replicate floor] vs steady,"random forest (300) [both, refit]",router (steady),geomean regret,-0.03932,-0.06681,-0.00936,1,512,21
+jump,workload mix (frozen + churning),O3 fit-restricted [operator median replicate floor] vs steady,"random forest (300) [both, refit]",router (steady),worst-case regret,0.45344,-0.16681,1.03551,0,512,21
+jump,workload mix (frozen + churning),O3 fit-restricted [operator median replicate floor] vs steady,"random forest (300) [both, refit]",router (steady),accuracy,-0.01293,-0.07525,0.04457,0,512,21
+jump,workload mix (frozen + churning),O3 fit-restricted [operator median replicate floor] vs +calib,"random forest (300) [both, refit]",router (+calibration),geomean regret,-0.24717,-0.31441,-0.18813,1,512,21
+jump,workload mix (frozen + churning),O3 fit-restricted [operator median replicate floor] vs +calib,"random forest (300) [both, refit]",router (+calibration),worst-case regret,-0.35909,-1.24841,0.45114,0,512,21
+jump,workload mix (frozen + churning),O3 fit-restricted [operator median replicate floor] vs +calib,"random forest (300) [both, refit]",router (+calibration),accuracy,-0.01293,-0.07525,0.04457,0,512,21
+jump,workload mix (frozen + churning),O3 pre-registered [operator median replicate floor] vs steady,"logistic regression [both, refit]",router (steady),geomean regret,0.07871,0.01708,0.15647,1,512,21
+jump,workload mix (frozen + churning),O3 pre-registered [operator median replicate floor] vs steady,"logistic regression [both, refit]",router (steady),worst-case regret,2.51885,2.04107,3.17485,1,512,21
+jump,workload mix (frozen + churning),O3 pre-registered [operator median replicate floor] vs steady,"logistic regression [both, refit]",router (steady),accuracy,-0.21271,-0.30621,-0.11905,1,512,21
+jump,workload mix (frozen + churning),O3 score-restricted [operator worst replicate floor] vs steady,random forest (300) [both],router (steady),geomean regret,-0.04449,-0.07041,-0.01893,1,478,21
+jump,workload mix (frozen + churning),O3 score-restricted [operator worst replicate floor] vs steady,random forest (300) [both],router (steady),worst-case regret,0.12353,-0.16681,0.51923,0,478,21
+jump,workload mix (frozen + churning),O3 score-restricted [operator worst replicate floor] vs steady,random forest (300) [both],router (steady),accuracy,-0.00948,-0.07262,0.04979,0,478,21
+jump,workload mix (frozen + churning),O3 score-restricted [operator worst replicate floor] vs +calib,random forest (300) [both],router (+calibration),geomean regret,-0.25103,-0.31937,-0.19132,1,478,21
+jump,workload mix (frozen + churning),O3 score-restricted [operator worst replicate floor] vs +calib,random forest (300) [both],router (+calibration),worst-case regret,-0.689,-1.41855,-0.12971,1,478,21
+jump,workload mix (frozen + churning),O3 score-restricted [operator worst replicate floor] vs +calib,random forest (300) [both],router (+calibration),accuracy,-0.00948,-0.07262,0.04979,0,478,21
+jump,workload mix (frozen + churning),O3 fit-restricted [operator worst replicate floor] vs steady,"gradient boosting [both, refit]",router (steady),geomean regret,-0.05622,-0.08395,-0.0314,1,478,21
+jump,workload mix (frozen + churning),O3 fit-restricted [operator worst replicate floor] vs steady,"gradient boosting [both, refit]",router (steady),worst-case regret,-0.33229,-0.6849,0.06311,0,478,21
+jump,workload mix (frozen + churning),O3 fit-restricted [operator worst replicate floor] vs steady,"gradient boosting [both, refit]",router (steady),accuracy,0.00096,-0.07579,0.05567,0,478,21
+jump,workload mix (frozen + churning),O3 fit-restricted [operator worst replicate floor] vs +calib,"gradient boosting [both, refit]",router (+calibration),geomean regret,-0.26276,-0.33553,-0.20248,1,478,21
+jump,workload mix (frozen + churning),O3 fit-restricted [operator worst replicate floor] vs +calib,"gradient boosting [both, refit]",router (+calibration),worst-case regret,-1.14482,-1.51991,-0.46274,1,478,21
+jump,workload mix (frozen + churning),O3 fit-restricted [operator worst replicate floor] vs +calib,"gradient boosting [both, refit]",router (+calibration),accuracy,0.00096,-0.07579,0.05567,0,478,21
+jump,workload mix (frozen + churning),O3 pre-registered [operator worst replicate floor] vs steady,"logistic regression [both, refit]",router (steady),geomean regret,0.08019,0.02005,0.15704,1,478,21
+jump,workload mix (frozen + churning),O3 pre-registered [operator worst replicate floor] vs steady,"logistic regression [both, refit]",router (steady),worst-case regret,2.41896,1.08097,3.17485,1,478,21
+jump,workload mix (frozen + churning),O3 pre-registered [operator worst replicate floor] vs steady,"logistic regression [both, refit]",router (steady),accuracy,-0.20934,-0.31056,-0.10879,1,478,21
+jump,workload mix (frozen + churning),O3 score-restricted [flat 10% parity band] vs steady,random forest (300) [both],router (steady),geomean regret,-0.04294,-0.06713,-0.01917,1,461,21
+jump,workload mix (frozen + churning),O3 score-restricted [flat 10% parity band] vs steady,random forest (300) [both],router (steady),worst-case regret,0.12353,-0.16681,0.51923,0,461,21
+jump,workload mix (frozen + churning),O3 score-restricted [flat 10% parity band] vs steady,random forest (300) [both],router (steady),accuracy,-0.02245,-0.0812,0.03234,0,461,21
+jump,workload mix (frozen + churning),O3 score-restricted [flat 10% parity band] vs +calib,random forest (300) [both],router (+calibration),geomean regret,-0.25577,-0.33174,-0.19082,1,461,21
+jump,workload mix (frozen + churning),O3 score-restricted [flat 10% parity band] vs +calib,random forest (300) [both],router (+calibration),worst-case regret,-0.68902,-1.41855,-0.12971,1,461,21
+jump,workload mix (frozen + churning),O3 score-restricted [flat 10% parity band] vs +calib,random forest (300) [both],router (+calibration),accuracy,-0.02245,-0.0812,0.03234,0,461,21
+jump,workload mix (frozen + churning),O3 fit-restricted [flat 10% parity band] vs steady,"random forest (300) [both, refit]",router (steady),geomean regret,-0.04849,-0.07913,-0.01829,1,461,21
+jump,workload mix (frozen + churning),O3 fit-restricted [flat 10% parity band] vs steady,"random forest (300) [both, refit]",router (steady),worst-case regret,0.30498,-0.61084,1.03551,0,461,21
+jump,workload mix (frozen + churning),O3 fit-restricted [flat 10% parity band] vs steady,"random forest (300) [both, refit]",router (steady),accuracy,-0.01463,-0.07631,0.04176,0,461,21
+jump,workload mix (frozen + churning),O3 fit-restricted [flat 10% parity band] vs +calib,"random forest (300) [both, refit]",router (+calibration),geomean regret,-0.26132,-0.3508,-0.1899,1,461,21
+jump,workload mix (frozen + churning),O3 fit-restricted [flat 10% parity band] vs +calib,"random forest (300) [both, refit]",router (+calibration),worst-case regret,-0.50756,-1.44585,0.45114,0,461,21
+jump,workload mix (frozen + churning),O3 fit-restricted [flat 10% parity band] vs +calib,"random forest (300) [both, refit]",router (+calibration),accuracy,-0.01463,-0.07631,0.04176,0,461,21
+jump,workload mix (frozen + churning),O3 pre-registered [flat 10% parity band] vs steady,"logistic regression [both, refit]",router (steady),geomean regret,0.07873,0.02083,0.15166,1,461,21
+jump,workload mix (frozen + churning),O3 pre-registered [flat 10% parity band] vs steady,"logistic regression [both, refit]",router (steady),worst-case regret,2.40554,1.08097,3.17485,1,461,21
+jump,workload mix (frozen + churning),O3 pre-registered [flat 10% parity band] vs steady,"logistic regression [both, refit]",router (steady),accuracy,-0.2144,-0.32292,-0.1009,1,461,21

@@ -1,0 +1,6 @@
+# TLC build output. Regenerate with ./run_tlc.sh; never commit.
+# The naive-mode counterexample is evidence only when a reader produces it.
+states/
+*_TTrace_*.tla
+*_TTrace_*.bin
+tla2tools.jar

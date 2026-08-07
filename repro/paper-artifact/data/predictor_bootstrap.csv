@@ -1,0 +1,61 @@
+churn_model,scope,contrast,a,b,statistic,delta,ci_lo,ci_hi,significant,n_cells,n_operators
+drift,frozen only,(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),geomean regret,-0.02654,-0.07428,0.02976,0,105,21
+drift,frozen only,(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),worst-case regret,0.04887,-0.21266,0.2111,0,105,21
+drift,frozen only,(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),accuracy,-0.04776,-0.14286,0.0,0,105,21
+drift,frozen only,(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],geomean regret,-0.01566,-0.04721,0.0,0,105,21
+drift,frozen only,(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],worst-case regret,-0.2528,-0.40114,0.0,0,105,21
+drift,frozen only,(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],accuracy,0.04776,0.0,0.14286,0,105,21
+drift,frozen only,(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),geomean regret,-0.02654,-0.07428,0.02976,0,105,21
+drift,frozen only,(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),worst-case regret,0.04887,-0.21266,0.2111,0,105,21
+drift,frozen only,(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),accuracy,-0.04776,-0.14286,0.0,0,105,21
+drift,frozen only,(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),geomean regret,-0.0927,-0.13578,-0.04113,1,105,21
+drift,frozen only,(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),worst-case regret,0.00447,-0.25734,0.1613,0,105,21
+drift,frozen only,(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),accuracy,-0.04776,-0.14286,0.0,0,105,21
+drift,workload mix (frozen + churning),(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),geomean regret,0.08039,0.04714,0.11439,1,523,21
+drift,workload mix (frozen + churning),(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),worst-case regret,2.76649,0.76558,4.50205,1,523,21
+drift,workload mix (frozen + churning),(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),accuracy,-0.18928,-0.2,-0.16763,1,523,21
+drift,workload mix (frozen + churning),(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],geomean regret,-0.15875,-0.20398,-0.11361,1,523,21
+drift,workload mix (frozen + churning),(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],worst-case regret,-4.29286,-4.8515,-2.84568,1,523,21
+drift,workload mix (frozen + churning),(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],accuracy,0.18928,0.16763,0.2,1,523,21
+drift,workload mix (frozen + churning),(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),geomean regret,-0.07836,-0.10143,-0.05415,1,523,21
+drift,workload mix (frozen + churning),(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),worst-case regret,-1.52637,-2.0801,-0.34945,1,523,21
+drift,workload mix (frozen + churning),(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),accuracy,0.0,0.0,0.0,0,523,21
+drift,workload mix (frozen + churning),(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),geomean regret,-0.3303,-0.39527,-0.27611,1,523,21
+drift,workload mix (frozen + churning),(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),worst-case regret,-2.3548,-2.67032,-0.8573,1,523,21
+drift,workload mix (frozen + churning),(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),accuracy,0.0,0.0,0.0,0,523,21
+jump,frozen only,(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),geomean regret,-0.00266,-0.05849,0.05718,0,105,21
+jump,frozen only,(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),worst-case regret,1.11521,-0.21487,1.58927,0,105,21
+jump,frozen only,(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),accuracy,-0.04675,-0.11429,0.0,0,105,21
+jump,frozen only,(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],geomean regret,-0.0365,-0.09356,0.0,0,105,21
+jump,frozen only,(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],worst-case regret,-1.30612,-1.77881,0.0,0,105,21
+jump,frozen only,(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],accuracy,0.04675,0.0,0.11429,0,105,21
+jump,frozen only,(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),geomean regret,-0.00266,-0.05849,0.05718,0,105,21
+jump,frozen only,(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),worst-case regret,1.11521,-0.21487,1.58927,0,105,21
+jump,frozen only,(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),accuracy,-0.04675,-0.11429,0.0,0,105,21
+jump,frozen only,(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),geomean regret,-0.07077,-0.12387,-0.01234,1,105,21
+jump,frozen only,(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),worst-case regret,1.06419,-0.26733,1.54379,0,105,21
+jump,frozen only,(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),accuracy,-0.04675,-0.11429,0.0,0,105,21
+jump,churning only,(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),geomean regret,-0.00908,-0.0607,0.06862,0,419,21
+jump,churning only,(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),worst-case regret,2.30592,0.17154,3.17485,1,419,21
+jump,churning only,(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),accuracy,-0.06305,-0.14632,0.00718,0,419,21
+jump,churning only,(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],geomean regret,-0.00508,-0.07934,0.04601,0,419,21
+jump,churning only,(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],worst-case regret,-1.97599,-3.10686,0.0,0,419,21
+jump,churning only,(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],accuracy,-0.05819,-0.15238,0.02864,0,419,21
+jump,churning only,(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),geomean regret,-0.05988,-0.08063,-0.03961,1,419,21
+jump,churning only,(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),worst-case regret,-0.1683,-0.19892,0.01606,0,419,21
+jump,churning only,(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),accuracy,0.00304,-0.06205,0.05742,0,419,21
+jump,churning only,(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),geomean regret,-0.3044,-0.39024,-0.23259,1,419,21
+jump,churning only,(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),worst-case regret,-0.98083,-1.41855,-0.46274,1,419,21
+jump,churning only,(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),accuracy,0.00304,-0.06205,0.05742,0,419,21
+jump,workload mix (frozen + churning),(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),geomean regret,0.10393,0.02274,0.20401,1,524,21
+jump,workload mix (frozen + churning),(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),worst-case regret,4.16581,2.04107,5.46214,1,524,21
+jump,workload mix (frozen + churning),(a) nested structure-only vs measured router,nested selection [structure],measured router (steady),accuracy,-0.22163,-0.33015,-0.11615,1,524,21
+jump,workload mix (frozen + churning),(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],geomean regret,-0.12338,-0.22496,-0.03891,1,524,21
+jump,workload mix (frozen + churning),(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],worst-case regret,-3.83588,-5.3958,-1.55087,1,524,21
+jump,workload mix (frozen + churning),(b) rho-only tree d=1 vs nested structure-only,1-D threshold on rho,nested selection [structure],accuracy,0.12468,-0.00961,0.25763,0,524,21
+jump,workload mix (frozen + churning),(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),geomean regret,-0.04378,-0.06876,-0.01878,1,524,21
+jump,workload mix (frozen + churning),(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),worst-case regret,1.33819,-0.16681,2.04107,0,524,21
+jump,workload mix (frozen + churning),(c) nested structure+rho vs measured router,nested selection [structure+rho],measured router (steady),accuracy,-0.00525,-0.06667,0.04962,0,524,21
+jump,workload mix (frozen + churning),(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),geomean regret,-0.24969,-0.31041,-0.19352,1,524,21
+jump,workload mix (frozen + churning),(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),worst-case regret,0.52566,-1.41855,1.44192,0,524,21
+jump,workload mix (frozen + churning),(d) nested structure+rho vs measured router incl. calibration,nested selection [structure+rho],measured router (+calibration),accuracy,-0.00525,-0.06667,0.04962,0,524,21

@@ -1,0 +1,46 @@
+HST Studio — paper artifact
+Copyright (c) 2026 HorneSci. All rights reserved.
+
+WHAT YOU MAY DO WITH THIS SUBTREE
+
+You are granted permission, at no cost and without needing to ask us, to:
+
+  - read, study and review every file here;
+  - run it, including compiling and executing the reference implementation in
+    src/, on any machine you control, for any purpose including commercial
+    evaluation;
+  - reproduce its outputs and report what you measured, whether or not what you
+    measured agrees with what we published;
+  - quote and cite it, in academic work, in a review, or in an argument that we
+    are wrong.
+
+Those are the uses this artifact exists for. Nothing here is intended to stop a
+referee, a customer or a competitor from checking our claims.
+
+WHAT IS NOT GRANTED
+
+Redistribution. You may not publish, mirror, repackage or distribute this
+subtree, or a modified version of it, to third parties.
+
+WHY THIS IS NARROWER THAN THE REST OF THE TREE
+
+Everything else in this download is Apache-2.0, which permits redistribution.
+This subtree is not, and it is a deliberate choice rather than an oversight or
+a leftover.
+
+A licence grant is one-way. Apache-2.0 text that we publish today cannot be
+withdrawn from the copies already made, so granting redistribution before the
+terms are settled is a decision that can never be revisited. Reserving it can:
+if you need redistribution rights, ask, and we can grant them. We cannot
+un-grant them.
+
+The paper itself is not yet placed, and where it lands may carry its own terms
+for the text, the figures and the bibliography. Publishing those under an
+irrevocable licence in advance of that is the kind of thing that is discovered
+later and cannot be fixed.
+
+None of this restricts the use that matters. If your goal is to check whether
+our numbers are real, this licence grants you everything you need and asks
+nothing of you.
+
+If you want terms this does not give you, write to us and we will settle it.

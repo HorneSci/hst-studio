@@ -1,0 +1,41 @@
+# The worked example's configuration. Seven documents, four of them designed
+# to fail in a different way. `python -m claimlint examples/corpus --ratchet`
+# should exit 0; break any one thing and it should not.
+
+[claimlint]
+profile = "default"
+window = 1200
+corpus = "walk"          # this directory is an example, not a tracked corpus
+required = ["baseline", "hardware", "sample_size", "toolchain"]
+
+# Optional and absent from this repository -- the public configuration stands
+# on its own. Point CLAIMLINT_PRIVATE_OVERLAY at a file to layer more on top.
+private_overlay = "private.claimlint.toml"
+
+# Three documents fall short, each for a different reason, and each carries a
+# reason saying which kind of exemption it is. `n/a` and `GAP` are not
+# interchangeable: a list where everything reads `n/a` is a list nobody prunes.
+
+[allowlist."MISSING_HARDWARE.md"]
+missing = ["hardware", "toolchain"]
+reason = "GAP - real debt: a timing ratio with no host and no compiler named"
+
+[allowlist."MISSING_TWO.md"]
+missing = ["baseline", "hardware", "sample_size", "toolchain"]
+reason = "GAP - a one-line note quoting 21x with nothing attached; kept as the specimen"
+
+[allowlist."FILENAME_NOT_PROSE.md"]
+missing = ["toolchain"]
+reason = "n/a - it names its compiler only in a filename and a link target, which is exactly what the markup stripping is supposed to refuse to count"
+
+[allowlist."WINDOW_NOT_FILE.md"]
+missing = ["hardware", "toolchain"]
+reason = "n/a - the only hardware term sits 3,000 characters away describing a customer's own deployment, which is why the check is windowed"
+
+# Floors. Set from a real run, a little below the observed counts. Without
+# these, a broken glob or a broken ratio regex produces a clean, empty,
+# meaningless pass.
+[floors]
+files = 6
+claim_bearing_files = 4
+clean_files = 1

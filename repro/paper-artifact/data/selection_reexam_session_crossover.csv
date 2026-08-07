@@ -1,0 +1,30 @@
+churn_model,scope,offline,feature_cost,learner,router_overtakes_at,interval_covers_zero_at
+drift,workload mix (frozen + churning),nested selection,free (as the paper charges it),logistic regression,never,never
+drift,workload mix (frozen + churning),nested selection,dens as shipped,logistic regression,never,never
+drift,workload mix (frozen + churning),nested selection,"dens, bincount hoisted",logistic regression,never,never
+drift,workload mix (frozen + churning),best-of-six on the scoring rows,free (as the paper charges it),logistic regression,never,never
+drift,workload mix (frozen + churning),best-of-six on the scoring rows,dens as shipped,logistic regression,never,never
+drift,workload mix (frozen + churning),best-of-six on the scoring rows,"dens, bincount hoisted",logistic regression,never,never
+drift,workload mix (frozen + churning),pre-registered,free (as the paper charges it),logistic regression,1310,800
+drift,workload mix (frozen + churning),pre-registered,dens as shipped,logistic regression,1195,800
+drift,workload mix (frozen + churning),pre-registered,"dens, bincount hoisted",logistic regression,1308,800
+jump,churning only,nested selection,free (as the paper charges it),logistic regression,never,never
+jump,churning only,nested selection,dens as shipped,logistic regression,never,never
+jump,churning only,nested selection,"dens, bincount hoisted",logistic regression,never,never
+jump,churning only,best-of-six on the scoring rows,free (as the paper charges it),logistic regression,never,never
+jump,churning only,best-of-six on the scoring rows,dens as shipped,logistic regression,never,never
+jump,churning only,best-of-six on the scoring rows,"dens, bincount hoisted",logistic regression,never,never
+jump,churning only,pre-registered,free (as the paper charges it),logistic regression,never,never
+jump,churning only,pre-registered,dens as shipped,logistic regression,never,never
+jump,churning only,pre-registered,"dens, bincount hoisted",logistic regression,never,never
+jump,workload mix (frozen + churning),nested selection,free (as the paper charges it),logistic regression,never,never
+jump,workload mix (frozen + churning),nested selection,dens as shipped,logistic regression,never,never
+jump,workload mix (frozen + churning),nested selection,"dens, bincount hoisted",logistic regression,never,never
+jump,workload mix (frozen + churning),best-of-six on the scoring rows,free (as the paper charges it),logistic regression,never,never
+jump,workload mix (frozen + churning),best-of-six on the scoring rows,dens as shipped,logistic regression,never,never
+jump,workload mix (frozen + churning),best-of-six on the scoring rows,"dens, bincount hoisted",logistic regression,never,never
+jump,workload mix (frozen + churning),pre-registered,free (as the paper charges it),logistic regression,1132,800
+jump,workload mix (frozen + churning),pre-registered,dens as shipped,logistic regression,1044,800
+jump,workload mix (frozen + churning),pre-registered,"dens, bincount hoisted",logistic regression,1130,800
+drift,churning only,,,"corr(log nnz, calibration share)",0.3694,"[-0.040, +0.667]"
+jump,churning only,,,"corr(log nnz, calibration share)",0.2578,"[-0.241, +0.605]"

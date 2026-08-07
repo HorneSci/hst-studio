@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spdelta"
+version = "0.1.0"
+description = "Reference baselines, motion generators, controls and a claim type for delta-updated sparse matvecs."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "spdelta contributors" }]
+keywords = ["sparse", "matvec", "benchmark", "delta", "scipy", "numpy"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Mathematics",
+  "Typing :: Typed",
+]
+dependencies = [
+  "numpy>=1.24",
+  "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+dev = ["pytest>=7.0", "mypy>=1.5"]
+
+# [project.urls] deliberately omitted until the public home is decided.
+# It pointed at github.com/HorneSci/<pkg>, which does not exist publicly --
+# shipping a Homepage that 404s is worse than shipping none. Restore both
+# when the repo is live.
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+spdelta = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

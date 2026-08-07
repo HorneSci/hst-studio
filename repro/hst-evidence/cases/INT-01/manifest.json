@@ -1,0 +1,80 @@
+{
+  "schema": "hst-evidence/case-v1",
+  "case_id": "INT-01",
+  "grade": "GRADE-A",
+  "precision": "f64",
+  "batch": 1,
+  "adversarial": false,
+  "why": "integer-exact, frozen dirty set -- the control case",
+  "operator": {
+    "source": "suitesparse",
+    "group": "HB",
+    "name": "bcspwr09",
+    "url": "https://suitesparse-collection-website.herokuapp.com/MM/HB/bcspwr09.tar.gz",
+    "mtx_sha256": "c396a96af9aab55af84522dd1b8d95ecb87c9c4b014f3597bc4f55067930b1ea",
+    "matrix_market_field": "pattern",
+    "matrix_market_symmetry": "symmetric",
+    "rows": 1723,
+    "cols": 1723,
+    "nnz_after_preprocessing": 6511
+  },
+  "preprocessing": {
+    "value_rule": "pattern_int_v1",
+    "description": "A `symmetric` Matrix Market file stores one triangle: each off-diagonal (i,j) contributes both (i,j) and (j,i); a diagonal entry contributes once. Stored values are then DISCARDED and replaced by A[i,j] = 1 + ((i + 3j) mod 5) with i,j zero-based, giving exact small integers in 1..5.",
+    "duplicate_coordinates": "none present; asserted at generation time"
+  },
+  "x0_generator": "x0_int_v1",
+  "x0_seed": 1101,
+  "x0_description": "x0[j][b] = 1 + ((j + 7b) mod 9), zero-based -- integers 1..9",
+  "dx": {
+    "file": "dx.bin",
+    "generator": "dx_v1",
+    "seed": 9101,
+    "steps": 6,
+    "motion": "frozen",
+    "drift_rho": null,
+    "dirty_fraction": 0.02,
+    "dirty_columns_per_step": 34,
+    "value_domain": "integers in [-4,4]",
+    "format": "GVDX0001, little-endian; layout documented in README.md",
+    "description": "dx_v1: rng = SplitMix64(seed). k = max(1, round(dirty_fraction * cols)). A column set is drawn by repeatedly taking rng.next() mod cols and rejecting repeats, then sorting ascending. Step 0 draws such a set. motion=frozen keeps it; motion=scattered draws a fresh set every step; motion=drift replaces the r = max(1, round(drift_rho * k)) lowest-indexed members with freshly drawn columns not already retained, then re-sorts. Values are emitted per (position in the dirty set, batch lane), position major."
+  },
+  "reference": {
+    "summation_order": "CSC. Columns ascending; within a column, row indices ascending; y[i*B+b] += A[i,j] * x[j*B+b] applied in exactly that sequence, with b ascending innermost. The delta apply uses the same order restricted to the dirty columns, taken ascending, and accumulates into the running y.",
+    "implementations": [
+      "reference/reference_spmv.py",
+      "reference/reference_spmv.c"
+    ]
+  },
+  "verification": {
+    "rel_l2_bound": 0.0,
+    "order_independent": true,
+    "exactness_argument": "Every A[i,j] is an integer in 1..5 and every x0/dx entry is an integer, so every partial sum is an integer. The largest accumulator any order can reach is max_i sum_j |A[i,j]| * (max|x0| + steps * max|dx|), reported below; it is under 2^53, so every partial sum is exactly representable in f64 and no addition rounds. Bit-equality therefore holds regardless of summation order, compiler, or vectorization. This is the one grade in the set that a correct implementation cannot fail for a benign reason.",
+    "max_abs_accumulator": 1551.0,
+    "exactly_representable_below": 9007199254740992,
+    "observed_rel_l2_between_orders": 0.0,
+    "observed_bit_differences_between_orders": 0
+  },
+  "outputs": {
+    "dx.bin": {
+      "sha256": "230832c05082a469c1969958da759a34b15e1e059f24999b340f9d40a4941012"
+    },
+    "y0.f64.bin": {
+      "shape": [
+        1723,
+        1
+      ],
+      "dtype": "<f8",
+      "sha256": "259105bead9698868a4e4a10db5d0f58c64d6058b77d4bdbe0dda1e573fe37fa"
+    },
+    "y.f64.bin": {
+      "shape": [
+        6,
+        1723,
+        1
+      ],
+      "dtype": "<f8",
+      "sha256": "dc1a7143a5999ef7574f9b3d4af3b518eb4671fe0b32bd1331ab0fafb944e33f"
+    }
+  }
+}

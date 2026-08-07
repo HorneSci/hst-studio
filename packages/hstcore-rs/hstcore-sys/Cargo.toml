@@ -1,0 +1,21 @@
+[package]
+name = "hstcore-sys"
+description = "Raw FFI declarations for the HST-core Embedded ABI (libhstcore), loaded at runtime."
+categories = ["external-ffi-bindings"]
+keywords = ["ffi", "bindings", "hstcore", "sparse", "dlopen"]
+readme = "README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# No build script and no bindgen: the thirteen declarations are written by hand
+# from hstcore.h, so this crate builds anywhere without libclang, and the header
+# is not needed at build time either. The header is 13 functions over an opaque
+# pointer (HSTCORE_1.4 — see oss/hstcore-abi/abi.json; a stale "12" propagated
+# into two bindings on 2026-08-05); a generator here would be more machinery
+# than surface.
+[dependencies]
+libloading.workspace = true
+libc.workspace = true

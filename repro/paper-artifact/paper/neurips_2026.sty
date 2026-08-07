@@ -1,0 +1,65 @@
+% neurips_2026.sty -- LOCAL APPROXIMATION of the NeurIPS style.
+%
+% The official style file is distributed by the conference and is not vendored
+% here. This file reproduces the format closely enough to write and review
+% against (page geometry, title block, section spacing, line numbers in
+% preprint mode). Before submitting, replace this file with the official
+% neurips_2026.sty and delete this one -- do not submit against this.
+%
+% Options: preprint (authors shown, no line numbers), final (camera ready).
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{neurips_2026}[2026/07/29 local NeurIPS-format approximation]
+
+\newif\if@nipsfinal\@nipsfinalfalse
+\newif\if@nipspreprint\@nipspreprintfalse
+\DeclareOption{final}{\@nipsfinaltrue}
+\DeclareOption{preprint}{\@nipspreprinttrue}
+\ProcessOptions\relax
+
+\RequirePackage[round]{natbib}
+\RequirePackage{geometry}
+\geometry{letterpaper, left=1.5in, right=1.5in, top=1.0in, bottom=1.0in,
+          headheight=12pt}
+\RequirePackage{times}
+\RequirePackage{lineno}
+
+\renewcommand{\baselinestretch}{1.0}
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{12pt}
+
+% --- title block ------------------------------------------------------------
+\renewcommand{\maketitle}{%
+  \begingroup
+  \begin{center}
+    {\LARGE\bfseries \@title \par}
+    \vskip 1.2em
+    {\normalsize \@author \par}
+    \vskip 0.6em
+  \end{center}
+  \endgroup
+  \vskip 0.5em
+}
+
+\renewenvironment{abstract}{%
+  \begin{center}{\bfseries Abstract}\end{center}
+  \begin{quote}\small
+}{\end{quote}\vskip 0.6em}
+
+% --- sectioning -------------------------------------------------------------
+\RequirePackage{titlesec}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
+% No [.] suffix here: every \paragraph head in the paper already carries its
+% own period, and the suffix rendered them all as "Frozen dirty set.." .
+\titleformat{\paragraph}[runin]{\normalsize\bfseries}{}{0em}{}
+\titlespacing*{\section}{0pt}{1.4ex plus .3ex}{0.7ex}
+\titlespacing*{\subsection}{0pt}{1.1ex plus .2ex}{0.5ex}
+\titlespacing*{\paragraph}{0pt}{1.0ex plus .2ex}{0.5em}
+
+% --- captions ---------------------------------------------------------------
+\RequirePackage[font=small,labelfont=bf,skip=4pt]{caption}
+
+\if@nipspreprint\linenumbers\fi
+\if@nipsfinal\nolinenumbers\fi
+
+\endinput

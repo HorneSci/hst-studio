@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bindnum"
+version = "0.1.0"
+description = "Bind the numbers already in your prose to the data behind them, and fail when they diverge."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+keywords = [
+  "reproducibility",
+  "literate-programming",
+  "documentation-testing",
+  "provenance",
+  "benchmarks",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Framework :: Pytest",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Documentation",
+  "Topic :: Software Development :: Testing",
+]
+# No runtime dependencies, deliberately. A binding test has to run on the
+# machine where the prose gets edited, and that machine does not have your
+# benchmark stack installed.
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.entry-points.pytest11]
+pytest_teeth = "bindnum.teeth.plugin"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "examples"]
+markers = [
+  "mutation_verified(date, mutation, result): records a mutation run performed against this test and observed to fail",
+]

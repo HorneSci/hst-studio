@@ -1,0 +1,28 @@
+churn_model,scope,procedure,a,b,statistic,delta,ci_lo,ci_hi,significant,n_cells,n_operators
+drift,workload mix (frozen + churning),O2b free-features nested vs steady,nested selection [free],router (steady),geomean regret,-0.07836,-0.10143,-0.05415,1,523,21
+drift,workload mix (frozen + churning),O2b free-features nested vs steady,nested selection [free],router (steady),worst-case regret,-1.52637,-2.0801,-0.34945,1,523,21
+drift,workload mix (frozen + churning),O2b free-features nested vs steady,nested selection [free],router (steady),accuracy,0.0,0.0,0.0,0,523,21
+drift,workload mix (frozen + churning),O2b free-features nested vs +calib,nested selection [free],router (+calibration),geomean regret,-0.3303,-0.39527,-0.27611,1,523,21
+drift,workload mix (frozen + churning),O2b free-features nested vs +calib,nested selection [free],router (+calibration),worst-case regret,-2.3548,-2.67032,-0.8573,1,523,21
+drift,workload mix (frozen + churning),O2b free-features nested vs +calib,nested selection [free],router (+calibration),accuracy,0.0,0.0,0.0,0,523,21
+drift,workload mix (frozen + churning),O2b free-features pre-registered vs steady,logistic regression [free],router (steady),geomean regret,0.08039,0.04714,0.11439,1,523,21
+drift,workload mix (frozen + churning),O2b free-features pre-registered vs steady,logistic regression [free],router (steady),worst-case regret,2.76649,0.76558,4.50205,1,523,21
+drift,workload mix (frozen + churning),O2b free-features pre-registered vs steady,logistic regression [free],router (steady),accuracy,-0.18928,-0.2,-0.16763,1,523,21
+jump,churning only,O2b free-features nested vs steady,nested selection [free],router (steady),geomean regret,-0.06018,-0.09463,-0.02591,1,419,21
+jump,churning only,O2b free-features nested vs steady,nested selection [free],router (steady),worst-case regret,0.26857,-0.63319,1.03551,0,419,21
+jump,churning only,O2b free-features nested vs steady,nested selection [free],router (steady),accuracy,0.02669,-0.05306,0.10024,0,419,21
+jump,churning only,O2b free-features nested vs +calib,nested selection [free],router (+calibration),geomean regret,-0.3047,-0.40042,-0.22611,1,419,21
+jump,churning only,O2b free-features nested vs +calib,nested selection [free],router (+calibration),worst-case regret,-0.54396,-1.4682,0.45114,0,419,21
+jump,churning only,O2b free-features nested vs +calib,nested selection [free],router (+calibration),accuracy,0.02669,-0.05306,0.10024,0,419,21
+jump,churning only,O2b free-features pre-registered vs steady,logistic regression [free],router (steady),geomean regret,-0.02293,-0.05105,0.01201,0,419,21
+jump,churning only,O2b free-features pre-registered vs steady,logistic regression [free],router (steady),worst-case regret,1.50274,0.11852,2.16558,1,419,21
+jump,churning only,O2b free-features pre-registered vs steady,logistic regression [free],router (steady),accuracy,-0.08297,-0.13604,-0.03333,1,419,21
+jump,workload mix (frozen + churning),O2b free-features nested vs steady,nested selection [free],router (steady),geomean regret,-0.03878,-0.06946,-0.00667,1,524,21
+jump,workload mix (frozen + churning),O2b free-features nested vs steady,nested selection [free],router (steady),worst-case regret,1.5325,-0.33695,2.04107,0,524,21
+jump,workload mix (frozen + churning),O2b free-features nested vs steady,nested selection [free],router (steady),accuracy,0.00068,-0.06286,0.05905,0,524,21
+jump,workload mix (frozen + churning),O2b free-features nested vs +calib,nested selection [free],router (+calibration),geomean regret,-0.24469,-0.31041,-0.1844,1,524,21
+jump,workload mix (frozen + churning),O2b free-features nested vs +calib,nested selection [free],router (+calibration),worst-case regret,0.71997,-1.41855,1.44192,0,524,21
+jump,workload mix (frozen + churning),O2b free-features nested vs +calib,nested selection [free],router (+calibration),accuracy,0.00068,-0.06286,0.05905,0,524,21
+jump,workload mix (frozen + churning),O2b free-features pre-registered vs steady,logistic regression [free],router (steady),geomean regret,0.07445,0.0142,0.14985,1,524,21
+jump,workload mix (frozen + churning),O2b free-features pre-registered vs steady,logistic regression [free],router (steady),worst-case regret,2.51744,2.04107,3.17485,1,524,21
+jump,workload mix (frozen + churning),O2b free-features pre-registered vs steady,logistic regression [free],router (steady),accuracy,-0.20238,-0.29771,-0.10516,1,524,21

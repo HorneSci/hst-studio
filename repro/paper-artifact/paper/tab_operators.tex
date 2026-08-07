@@ -1,0 +1,50 @@
+\begin{tabular}{llrrrlccccc}
+\toprule
+operator & domain & $N$ & nnz & dens & motion & \multicolumn{5}{c}{best arm $\div$ column-exact, by $\rho$}\\
+\cmidrule(lr){7-11}
+ & & & & & & $0$ & $0.002$ & $0.01$ & $0.05$ & $0.25$ \\
+\midrule
+TSOPF\_RS\_b39\_c30 & power flow & 60,098 & 1,079,986 & 1.00 & local drift & \textbf{1.00} & \textbf{33.9} & \textbf{34.9} & \textbf{33.6} & \textbf{33.4} \\
+ &  &  &  &  & uniform jump & \textbf{1.01} & \textbf{16.7} & \textbf{9.18} & \textbf{3.81} & \textbf{1.60} \\
+TSOPF\_RS\_b162\_c3 & power flow & 15,374 & 610,299 & 1.00 & local drift & 1.00 & \textbf{31.9} & \textbf{30.9} & \textbf{28.2} & \textbf{29.0} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{14.3} & \textbf{7.87} & \textbf{4.18} & \textbf{2.57} \\
+TSOPF\_RS\_b300\_c1 & power flow & 14,538 & 1,474,325 & 1.00 & local drift & 1.00 & \textbf{24.0} & \textbf{24.0} & \textbf{21.8} & \textbf{29.1} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{16.3} & \textbf{9.54} & \textbf{5.49} & \textbf{3.82} \\
+nasa2910 & structural FEM & 2,910 & 174,296 & 0.84 & local drift & 1.00 & \textbf{14.2} & \textbf{12.2} & \textbf{8.57} & \textbf{8.70} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{5.37} & \textbf{4.29} & \textbf{3.85} & \textbf{3.71} \\
+raefsky3 & fluid/struct. & 21,200 & 1,488,768 & 1.00 & local drift & 1.00 & \textbf{13.6} & \textbf{11.6} & \textbf{9.42} & \textbf{9.10} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{4.91} & \textbf{3.65} & \textbf{3.09} & \textbf{2.75} \\
+case9 & power flow & 14,454 & 147,972 & 0.76 & local drift & 1.00 & \textbf{12.4} & \textbf{12.4} & \textbf{12.1} & \textbf{12.1} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{4.31} & \textbf{3.05} & \textbf{1.67} & \textbf{1.15} \\
+msc10848 & structural FEM & 10,848 & 1,229,776 & 0.68 & local drift & 1.00 & \textbf{10.5} & \textbf{9.83} & \textbf{8.23} & \textbf{8.42} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{5.28} & \textbf{4.18} & \textbf{3.75} & \textbf{3.50} \\
+ct20stif & structural FEM & 52,329 & 2,600,295 & 0.75 & local drift & 1.00 & \textbf{9.73} & \textbf{8.59} & \textbf{6.22} & \textbf{5.90} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{3.11} & \textbf{2.30} & \textbf{1.95} & \textbf{1.75} \\
+s3rmt3m3 & shell FEM & 5,357 & 207,123 & 0.82 & local drift & 1.00 & \textbf{9.57} & \textbf{8.33} & \textbf{5.50} & \textbf{5.08} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{3.95} & \textbf{3.18} & \textbf{2.82} & \textbf{2.65} \\
+memplus & circuit sim & 17,758 & 99,147 & 0.82 & local drift & 1.00 & \textbf{9.49} & \textbf{8.87} & \textbf{7.63} & \textbf{6.64} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{4.41} & \textbf{2.25} & \textbf{1.15} & 1.00 \\
+olafu & structural FEM & 16,146 & 1,015,156 & 0.63 & local drift & 1.00 & \textbf{9.13} & \textbf{8.69} & \textbf{6.74} & \textbf{7.66} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{3.64} & \textbf{2.99} & \textbf{2.71} & \textbf{2.48} \\
+bcsstk25 & structural FEM & 15,439 & 252,241 & 0.62 & local drift & 1.00 & \textbf{5.95} & \textbf{4.66} & \textbf{3.28} & \textbf{3.07} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{1.81} & \textbf{1.35} & \textbf{1.14} & \textbf{1.05} \\
+circuit\_3 & circuit sim & 12,127 & 48,137 & 0.80 & local drift & 1.00 & \textbf{5.46} & \textbf{5.56} & \textbf{4.28} & \textbf{4.31} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{1.59} & 1.00 & 1.00 & 1.00 \\
+bcsstk18 & structural FEM & 11,948 & 149,090 & 0.57 & local drift & 1.00 & \textbf{5.00} & \textbf{3.93} & \textbf{2.73} & \textbf{2.62} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{1.66} & \textbf{1.20} & \textbf{1.02} & 1.00 \\
+add32 & circuit sim & 4,960 & 19,848 & 0.66 & local drift & 1.00 & \textbf{3.91} & \textbf{3.50} & \textbf{2.21} & \textbf{1.79} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{1.30} & \textbf{1.05} & 1.00 & 1.00 \\
+epb2 & plate/beam & 25,228 & 175,027 & 0.69 & local drift & 1.00 & \textbf{3.59} & \textbf{2.92} & \textbf{2.03} & \textbf{1.98} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{1.21} & 1.00 & 1.00 & 1.00 \\
+rajat03 & circuit sim & 7,602 & 32,653 & 0.45 & local drift & 1.00 & \textbf{2.88} & \textbf{2.16} & \textbf{1.51} & \textbf{1.28} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{1.10} & 1.00 & 1.00 & 1.00 \\
+wang3 & device sim & 26,064 & 177,168 & 0.37 & local drift & 1.00 & \textbf{2.32} & \textbf{1.77} & \textbf{1.33} & \textbf{1.16} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{1.08} & 1.00 & 1.00 & 1.00 \\
+scircuit & circuit sim & 170,998 & 958,936 & 0.48 & local drift & 1.00 & \textbf{2.24} & \textbf{1.84} & \textbf{1.57} & \textbf{1.43} \\
+ &  &  &  &  & uniform jump & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 \\
+bcspwr09 & power network & 1,723 & 6,511 & 0.26 & local drift & 1.00 & \textbf{1.97} & \textbf{1.64} & \textbf{1.55} & \textbf{1.52} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{1.73} & \textbf{1.42} & \textbf{1.26} & \textbf{1.20} \\
+bcspwr10 & power network & 5,300 & 21,842 & 0.18 & local drift & 1.00 & \textbf{1.32} & \textbf{1.26} & \textbf{1.22} & \textbf{1.15} \\
+ &  &  &  &  & uniform jump & 1.00 & \textbf{1.20} & \textbf{1.06} & 1.00 & 1.00 \\
+\bottomrule
+\end{tabular}

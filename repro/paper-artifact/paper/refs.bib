@@ -1,0 +1,347 @@
+% Bibliography.
+%
+% Verified 2026-07-31 against Crossref (ACM's own DOI deposits), calgo.acm.org,
+% publisher issue PDFs and camera-ready title pages, with dblp as corroboration.
+% dl.acm.org returns 403 to automated fetches, so no field below was read off an
+% ACM DL HTML page; every ACM field traces to Crossref or a PDF.
+%
+% Four errors were found in the previous version of this file and are fixed
+% here: the Vuduc thesis key said 2005 and the thesis is 2003; the Williams SC
+% entry carried no article number (SC '07 papers have article numbers, not page
+% ranges); the GraphBLAS entry was missing its article number and pages; and
+% SPARSITY was unbraced and would have been lowercased.
+%
+% Fields deliberately omitted rather than guessed: the Golub & Van Loan series
+% name (on no publisher or library record reachable), ISBNs for PLDI 2019 and
+% HPEC 2012 (not in the deposited records), and any page range for Differential
+% Dataflow (CIDR publishes unpaginated online proceedings).
+
+% ==================== sparse kernel benchmarks ====================
+
+@article{davis2011,
+  author    = {Timothy A. Davis and Yifan Hu},
+  title     = {The University of {F}lorida Sparse Matrix Collection},
+  journal   = {ACM Transactions on Mathematical Software},
+  volume    = {38},
+  number    = {1},
+  articleno = {1},
+  numpages  = {25},
+  pages     = {1:1--1:25},
+  year      = {2011},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/2049662.2049663}
+}
+
+@inproceedings{williams2007,
+  author    = {Samuel Williams and Leonid Oliker and Richard Vuduc and
+               John Shalf and Katherine Yelick and James Demmel},
+  title     = {Optimization of Sparse Matrix-Vector Multiplication on
+               Emerging Multicore Platforms},
+  booktitle = {Proceedings of the 2007 ACM/IEEE Conference on Supercomputing
+               (SC '07)},
+  articleno = {38},
+  numpages  = {12},
+  pages     = {38:1--38:12},
+  year      = {2007},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/1362622.1362674}
+}
+
+@phdthesis{vuduc2003,
+  author = {Richard Wilson Vuduc},
+  title  = {Automatic Performance Tuning of Sparse Matrix Kernels},
+  school = {University of California, Berkeley},
+  year   = {2003}
+}
+
+@article{im2004,
+  author    = {Eun-Jin Im and Katherine Yelick and Richard Vuduc},
+  title     = {{SPARSITY}: Optimization Framework for Sparse Matrix Kernels},
+  journal   = {The International Journal of High Performance Computing
+               Applications},
+  volume    = {18},
+  number    = {1},
+  pages     = {135--158},
+  year      = {2004},
+  publisher = {SAGE Publications},
+  doi       = {10.1177/1094342004041296}
+}
+
+@article{beamer2015,
+  author  = {Scott Beamer and Krste Asanovi{\'c} and David Patterson},
+  title   = {The {GAP} Benchmark Suite},
+  journal = {arXiv preprint arXiv:1508.03619},
+  year    = {2015},
+  doi     = {10.48550/arXiv.1508.03619}
+}
+
+% ==================== sparse compilers ====================
+
+@article{kjolstad2017,
+  author    = {Fredrik Kjolstad and Shoaib Kamil and Stephen Chou and
+               David Lugato and Saman Amarasinghe},
+  title     = {The Tensor Algebra Compiler},
+  journal   = {Proceedings of the ACM on Programming Languages},
+  volume    = {1},
+  number    = {OOPSLA},
+  articleno = {77},
+  numpages  = {29},
+  pages     = {77:1--77:29},
+  year      = {2017},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3133901}
+}
+
+@inproceedings{ye2023,
+  author    = {Zihao Ye and Ruihang Lai and Junru Shao and Tianqi Chen and
+               Luis Ceze},
+  title     = {{SparseTIR}: Composable Abstractions for Sparse Compilation
+               in Deep Learning},
+  booktitle = {Proceedings of the 28th ACM International Conference on
+               Architectural Support for Programming Languages and Operating
+               Systems, Volume 3 (ASPLOS 2023)},
+  pages     = {660--678},
+  year      = {2023},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3582016.3582047}
+}
+
+% ==================== incremental and streaming computation ====================
+
+@article{gupta1995,
+  author  = {Ashish Gupta and Inderpal Singh Mumick},
+  title   = {Maintenance of Materialized Views: Problems, Techniques, and
+             Applications},
+  journal = {IEEE Data Engineering Bulletin},
+  volume  = {18},
+  number  = {2},
+  pages   = {3--18},
+  year    = {1995}
+}
+
+@article{demetrescu2004,
+  author    = {Camil Demetrescu and Giuseppe F. Italiano},
+  title     = {A New Approach to Dynamic All Pairs Shortest Paths},
+  journal   = {Journal of the ACM},
+  volume    = {51},
+  number    = {6},
+  pages     = {968--992},
+  year      = {2004},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/1039488.1039492}
+}
+
+@inproceedings{acar2002,
+  author    = {Umut A. Acar and Guy E. Blelloch and Robert Harper},
+  title     = {Adaptive Functional Programming},
+  booktitle = {Proceedings of the 29th ACM SIGPLAN-SIGACT Symposium on
+               Principles of Programming Languages (POPL '02)},
+  pages     = {247--259},
+  year      = {2002},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/503272.503296}
+}
+
+@phdthesis{acar2005,
+  author = {Umut A. Acar},
+  title  = {Self-Adjusting Computation},
+  school = {Carnegie Mellon University},
+  year   = {2005},
+  month  = may,
+  note   = {Technical Report CMU-CS-05-129}
+}
+
+@inproceedings{mcsherry2013,
+  author    = {Frank McSherry and Derek G. Murray and Rebecca Isaacs and
+               Michael Isard},
+  title     = {Differential Dataflow},
+  booktitle = {Proceedings of the 6th Biennial Conference on Innovative Data
+               Systems Research (CIDR 2013)},
+  year      = {2013},
+  url       = {http://cidrdb.org/cidr2013/Papers/CIDR13_Paper111.pdf},
+  note      = {Online proceedings; no pagination}
+}
+
+@article{koch2014,
+  author    = {Christoph Koch and Yanif Ahmad and Oliver Kennedy and
+               Milos Nikolic and Andres N{\"o}tzli and Daniel Lupei and
+               Amir Shaikhha},
+  title     = {{DBToaster}: Higher-Order Delta Processing for Dynamic,
+               Frequently Fresh Views},
+  journal   = {The VLDB Journal},
+  volume    = {23},
+  number    = {2},
+  pages     = {253--278},
+  year      = {2014},
+  publisher = {Springer},
+  doi       = {10.1007/s00778-013-0348-4}
+}
+
+% ==================== dynamic and streaming graph containers ====================
+
+@inproceedings{ediger2012,
+  author    = {David Ediger and Rob McColl and Jason Riedy and David A. Bader},
+  title     = {{STINGER}: High Performance Data Structure for Streaming
+               Graphs},
+  booktitle = {2012 IEEE Conference on High Performance Extreme Computing
+               (HPEC)},
+  pages     = {1--5},
+  year      = {2012},
+  publisher = {IEEE},
+  doi       = {10.1109/HPEC.2012.6408680}
+}
+
+@inproceedings{dhulipala2019,
+  author    = {Laxman Dhulipala and Guy E. Blelloch and Julian Shun},
+  title     = {Low-Latency Graph Streaming Using Compressed Purely-Functional
+               Trees},
+  booktitle = {Proceedings of the 40th ACM SIGPLAN Conference on Programming
+               Language Design and Implementation (PLDI 2019)},
+  pages     = {918--934},
+  year      = {2019},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3314221.3314598}
+}
+
+@article{kumar2020,
+  author    = {Pradeep Kumar and H. Howie Huang},
+  title     = {{GraphOne}: A Data Store for Real-time Analytics on Evolving
+               Graphs},
+  journal   = {ACM Transactions on Storage},
+  volume    = {15},
+  number    = {4},
+  articleno = {29},
+  numpages  = {40},
+  pages     = {29:1--29:40},
+  year      = {2020},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3364180}
+}
+
+@inproceedings{pandey2021,
+  author    = {Prashant Pandey and Brian Wheatman and Helen Xu and
+               Aydin Buluc},
+  title     = {Terrace: A Hierarchical Graph Container for Skewed Dynamic
+               Graphs},
+  booktitle = {Proceedings of the 2021 International Conference on Management
+               of Data (SIGMOD '21)},
+  pages     = {1372--1385},
+  year      = {2021},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3448016.3457313}
+}
+
+% ==================== GraphBLAS ====================
+
+@article{davis2019,
+  author    = {Timothy A. Davis},
+  title     = {Algorithm 1000: {SuiteSparse:GraphBLAS}: Graph Algorithms in
+               the Language of Sparse Linear Algebra},
+  journal   = {ACM Transactions on Mathematical Software},
+  volume    = {45},
+  number    = {4},
+  articleno = {44},
+  numpages  = {25},
+  pages     = {44:1--44:25},
+  year      = {2019},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3322125}
+}
+
+@inproceedings{buluc2017,
+  author    = {Ayd{\i}n Bulu{\c c} and Tim Mattson and Scott McMillan and
+               Jos{\'e} Moreira and Carl Yang},
+  title     = {Design of the {GraphBLAS} {API} for {C}},
+  booktitle = {2017 IEEE International Parallel and Distributed Processing
+               Symposium Workshops (IPDPSW)},
+  pages     = {643--652},
+  year      = {2017},
+  publisher = {IEEE},
+  doi       = {10.1109/IPDPSW.2017.117}
+}
+
+@techreport{graphblas2023,
+  author      = {Benjamin Brock and Ayd{\i}n Bulu{\c c} and Raye Kimmerer and
+                 Jim Kitchen and Manoj Kumar and Timothy Mattson and
+                 Scott McMillan and Jos{\'e} Moreira and Michel Pelletier and
+                 Erik Welch},
+  title       = {The {GraphBLAS} {C} {API} Specification, Version 2.1},
+  institution = {The GraphBLAS Forum},
+  year        = {2023},
+  url         = {https://graphblas.org/docs/GraphBLAS_API_C_v2.1.0.pdf}
+}
+
+% ==================== low-rank and inverse updating ====================
+
+@article{sherman1950,
+  author    = {Jack Sherman and Winifred J. Morrison},
+  title     = {Adjustment of an Inverse Matrix Corresponding to a Change in
+               One Element of a Given Matrix},
+  journal   = {The Annals of Mathematical Statistics},
+  volume    = {21},
+  number    = {1},
+  pages     = {124--127},
+  year      = {1950},
+  publisher = {Institute of Mathematical Statistics},
+  doi       = {10.1214/aoms/1177729893}
+}
+
+@article{hager1989,
+  author    = {William W. Hager},
+  title     = {Updating the Inverse of a Matrix},
+  journal   = {SIAM Review},
+  volume    = {31},
+  number    = {2},
+  pages     = {221--239},
+  year      = {1989},
+  publisher = {Society for Industrial and Applied Mathematics},
+  doi       = {10.1137/1031049}
+}
+
+@book{golub2013,
+  author    = {Gene H. Golub and Charles F. Van Loan},
+  title     = {Matrix Computations},
+  edition   = {Fourth},
+  publisher = {Johns Hopkins University Press},
+  address   = {Baltimore, MD},
+  year      = {2013},
+  isbn      = {978-1-4214-0794-4}
+}
+
+% ==================== kernel selection and autotuning ====================
+
+@inproceedings{li2013,
+  author    = {Jiajia Li and Guangming Tan and Mingyu Chen and Ninghui Sun},
+  title     = {{SMAT}: An Input Adaptive Auto-Tuner for Sparse Matrix-Vector
+               Multiplication},
+  booktitle = {Proceedings of the 34th ACM SIGPLAN Conference on Programming
+               Language Design and Implementation (PLDI '13)},
+  pages     = {117--126},
+  year      = {2013},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/2491956.2462181}
+}
+
+@inproceedings{sedaghati2015,
+  author    = {Naser Sedaghati and Te Mu and Louis-No{\"e}l Pouchet and
+               Srinivasan Parthasarathy and P. Sadayappan},
+  title     = {Automatic Selection of Sparse Matrix Representation on {GPU}s},
+  booktitle = {Proceedings of the 29th ACM on International Conference on
+               Supercomputing (ICS '15)},
+  pages     = {99--108},
+  year      = {2015},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/2751205.2751244}
+}
+
+@inproceedings{zhao2018,
+  author    = {Yue Zhao and Jiajia Li and Chunhua Liao and Xipeng Shen},
+  title     = {Bridging the Gap Between Deep Learning and Sparse Matrix
+               Format Selection},
+  booktitle = {Proceedings of the 23rd ACM SIGPLAN Symposium on Principles
+               and Practice of Parallel Programming (PPoPP '18)},
+  pages     = {94--108},
+  year      = {2018},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3178487.3178495}
+}

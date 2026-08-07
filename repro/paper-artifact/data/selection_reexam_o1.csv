@@ -1,0 +1,193 @@
+churn_model,scope,procedure,a,b,statistic,delta,ci_lo,ci_hi,significant,n_cells,n_operators
+drift,workload mix (frozen + churning),learner spread,structure+rho,,geomean regret span,0.15913,,,,523,21
+drift,workload mix (frozen + churning),per-learner LOMO,1-D threshold (tree d=1) [structure+rho],,geomean regret,1.00003,,,,523,21
+drift,workload mix (frozen + churning),per-learner LOMO,decision tree d=3 [structure+rho],,geomean regret,1.00312,,,,523,21
+drift,workload mix (frozen + churning),per-learner LOMO,logistic regression [structure+rho],,geomean regret,1.15917,,,,523,21
+drift,workload mix (frozen + churning),per-learner LOMO,kNN (k=5) [structure+rho],,geomean regret,1.13796,,,,523,21
+drift,workload mix (frozen + churning),per-learner LOMO,random forest (300) [structure+rho],,geomean regret,1.00003,,,,523,21
+drift,workload mix (frozen + churning),per-learner LOMO,gradient boosting [structure+rho],,geomean regret,1.00312,,,,523,21
+drift,workload mix (frozen + churning),best-of-six on the scoring rows vs steady,1-D threshold (tree d=1) [structure+rho],router (steady),geomean regret,-0.07836,-0.10143,-0.05415,1,523,21
+drift,workload mix (frozen + churning),best-of-six on the scoring rows vs steady,1-D threshold (tree d=1) [structure+rho],router (steady),worst-case regret,-1.52637,-2.0801,-0.34945,1,523,21
+drift,workload mix (frozen + churning),best-of-six on the scoring rows vs steady,1-D threshold (tree d=1) [structure+rho],router (steady),accuracy,0.0,0.0,0.0,0,523,21
+drift,workload mix (frozen + churning),best-of-six on the scoring rows vs +calib,1-D threshold (tree d=1) [structure+rho],router (+calibration),geomean regret,-0.3303,-0.39527,-0.27611,1,523,21
+drift,workload mix (frozen + churning),best-of-six on the scoring rows vs +calib,1-D threshold (tree d=1) [structure+rho],router (+calibration),worst-case regret,-2.3548,-2.67032,-0.8573,1,523,21
+drift,workload mix (frozen + churning),best-of-six on the scoring rows vs +calib,1-D threshold (tree d=1) [structure+rho],router (+calibration),accuracy,0.0,0.0,0.0,0,523,21
+drift,workload mix (frozen + churning),pre-registered vs steady,logistic regression [structure+rho],router (steady),geomean regret,0.08039,0.04714,0.11439,1,523,21
+drift,workload mix (frozen + churning),pre-registered vs steady,logistic regression [structure+rho],router (steady),worst-case regret,2.76649,0.76558,4.50205,1,523,21
+drift,workload mix (frozen + churning),pre-registered vs steady,logistic regression [structure+rho],router (steady),accuracy,-0.18928,-0.2,-0.16763,1,523,21
+drift,workload mix (frozen + churning),pre-registered vs +calib,logistic regression [structure+rho],router (+calibration),geomean regret,-0.17155,-0.25531,-0.09759,1,523,21
+drift,workload mix (frozen + churning),pre-registered vs +calib,logistic regression [structure+rho],router (+calibration),worst-case regret,1.93807,0.17536,3.9942,1,523,21
+drift,workload mix (frozen + churning),pre-registered vs +calib,logistic regression [structure+rho],router (+calibration),accuracy,-0.18928,-0.2,-0.16763,1,523,21
+drift,workload mix (frozen + churning),pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure+rho],router (steady),geomean regret,-0.07836,-0.10143,-0.05415,1,523,21
+drift,workload mix (frozen + churning),pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure+rho],router (steady),worst-case regret,-1.52637,-2.0801,-0.34945,1,523,21
+drift,workload mix (frozen + churning),pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure+rho],router (steady),accuracy,0.0,0.0,0.0,0,523,21
+drift,workload mix (frozen + churning),pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure+rho],router (+calibration),geomean regret,-0.3303,-0.39527,-0.27611,1,523,21
+drift,workload mix (frozen + churning),pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure+rho],router (+calibration),worst-case regret,-2.3548,-2.67032,-0.8573,1,523,21
+drift,workload mix (frozen + churning),pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure+rho],router (+calibration),accuracy,0.0,0.0,0.0,0,523,21
+drift,workload mix (frozen + churning),selection optimism,nested [structure+rho],best_of [structure+rho],geomean regret,0.0,,,,523,21
+drift,workload mix (frozen + churning),nested vs steady,nested selection [structure+rho],router (steady),geomean regret,-0.07836,-0.10143,-0.05415,1,523,21
+drift,workload mix (frozen + churning),nested vs steady,nested selection [structure+rho],router (steady),worst-case regret,-1.52637,-2.0801,-0.34945,1,523,21
+drift,workload mix (frozen + churning),nested vs steady,nested selection [structure+rho],router (steady),accuracy,0.0,0.0,0.0,0,523,21
+drift,workload mix (frozen + churning),nested vs +calib,nested selection [structure+rho],router (+calibration),geomean regret,-0.3303,-0.39527,-0.27611,1,523,21
+drift,workload mix (frozen + churning),nested vs +calib,nested selection [structure+rho],router (+calibration),worst-case regret,-2.3548,-2.67032,-0.8573,1,523,21
+drift,workload mix (frozen + churning),nested vs +calib,nested selection [structure+rho],router (+calibration),accuracy,0.0,0.0,0.0,0,523,21
+drift,workload mix (frozen + churning),learner spread,structure,,geomean regret span,0.03857,,,,523,21
+drift,workload mix (frozen + churning),per-learner LOMO,1-D threshold (tree d=1) [structure],,geomean regret,1.15917,,,,523,21
+drift,workload mix (frozen + churning),per-learner LOMO,decision tree d=3 [structure],,geomean regret,1.15917,,,,523,21
+drift,workload mix (frozen + churning),per-learner LOMO,logistic regression [structure],,geomean regret,1.15917,,,,523,21
+drift,workload mix (frozen + churning),per-learner LOMO,kNN (k=5) [structure],,geomean regret,1.19774,,,,523,21
+drift,workload mix (frozen + churning),per-learner LOMO,random forest (300) [structure],,geomean regret,1.15917,,,,523,21
+drift,workload mix (frozen + churning),per-learner LOMO,gradient boosting [structure],,geomean regret,1.15917,,,,523,21
+drift,workload mix (frozen + churning),best-of-six on the scoring rows vs steady,1-D threshold (tree d=1) [structure],router (steady),geomean regret,0.08039,0.04714,0.11439,1,523,21
+drift,workload mix (frozen + churning),best-of-six on the scoring rows vs steady,1-D threshold (tree d=1) [structure],router (steady),worst-case regret,2.76649,0.76558,4.50205,1,523,21
+drift,workload mix (frozen + churning),best-of-six on the scoring rows vs steady,1-D threshold (tree d=1) [structure],router (steady),accuracy,-0.18928,-0.2,-0.16763,1,523,21
+drift,workload mix (frozen + churning),best-of-six on the scoring rows vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),geomean regret,-0.17155,-0.25531,-0.09759,1,523,21
+drift,workload mix (frozen + churning),best-of-six on the scoring rows vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),worst-case regret,1.93807,0.17536,3.9942,1,523,21
+drift,workload mix (frozen + churning),best-of-six on the scoring rows vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),accuracy,-0.18928,-0.2,-0.16763,1,523,21
+drift,workload mix (frozen + churning),pre-registered vs steady,logistic regression [structure],router (steady),geomean regret,0.08039,0.04714,0.11439,1,523,21
+drift,workload mix (frozen + churning),pre-registered vs steady,logistic regression [structure],router (steady),worst-case regret,2.76649,0.76558,4.50205,1,523,21
+drift,workload mix (frozen + churning),pre-registered vs steady,logistic regression [structure],router (steady),accuracy,-0.18928,-0.2,-0.16763,1,523,21
+drift,workload mix (frozen + churning),pre-registered vs +calib,logistic regression [structure],router (+calibration),geomean regret,-0.17155,-0.25531,-0.09759,1,523,21
+drift,workload mix (frozen + churning),pre-registered vs +calib,logistic regression [structure],router (+calibration),worst-case regret,1.93807,0.17536,3.9942,1,523,21
+drift,workload mix (frozen + churning),pre-registered vs +calib,logistic regression [structure],router (+calibration),accuracy,-0.18928,-0.2,-0.16763,1,523,21
+drift,workload mix (frozen + churning),pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure],router (steady),geomean regret,0.08039,0.04714,0.11439,1,523,21
+drift,workload mix (frozen + churning),pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure],router (steady),worst-case regret,2.76649,0.76558,4.50205,1,523,21
+drift,workload mix (frozen + churning),pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure],router (steady),accuracy,-0.18928,-0.2,-0.16763,1,523,21
+drift,workload mix (frozen + churning),pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),geomean regret,-0.17155,-0.25531,-0.09759,1,523,21
+drift,workload mix (frozen + churning),pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),worst-case regret,1.93807,0.17536,3.9942,1,523,21
+drift,workload mix (frozen + churning),pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),accuracy,-0.18928,-0.2,-0.16763,1,523,21
+drift,workload mix (frozen + churning),selection optimism,nested [structure],best_of [structure],geomean regret,0.0,,,,523,21
+drift,workload mix (frozen + churning),nested vs steady,nested selection [structure],router (steady),geomean regret,0.08039,0.04714,0.11439,1,523,21
+drift,workload mix (frozen + churning),nested vs steady,nested selection [structure],router (steady),worst-case regret,2.76649,0.76558,4.50205,1,523,21
+drift,workload mix (frozen + churning),nested vs steady,nested selection [structure],router (steady),accuracy,-0.18928,-0.2,-0.16763,1,523,21
+drift,workload mix (frozen + churning),nested vs +calib,nested selection [structure],router (+calibration),geomean regret,-0.17155,-0.25531,-0.09759,1,523,21
+drift,workload mix (frozen + churning),nested vs +calib,nested selection [structure],router (+calibration),worst-case regret,1.93807,0.17536,3.9942,1,523,21
+drift,workload mix (frozen + churning),nested vs +calib,nested selection [structure],router (+calibration),accuracy,-0.18928,-0.2,-0.16763,1,523,21
+jump,churning only,learner spread,structure+rho,,geomean regret span,0.08879,,,,419,21
+jump,churning only,per-learner LOMO,1-D threshold (tree d=1) [structure+rho],,geomean regret,1.10874,,,,419,21
+jump,churning only,per-learner LOMO,decision tree d=3 [structure+rho],,geomean regret,1.06797,,,,419,21
+jump,churning only,per-learner LOMO,logistic regression [structure+rho],,geomean regret,1.02481,,,,419,21
+jump,churning only,per-learner LOMO,kNN (k=5) [structure+rho],,geomean regret,1.05751,,,,419,21
+jump,churning only,per-learner LOMO,random forest (300) [structure+rho],,geomean regret,1.04003,,,,419,21
+jump,churning only,per-learner LOMO,gradient boosting [structure+rho],,geomean regret,1.01995,,,,419,21
+jump,churning only,best-of-six on the scoring rows vs steady,gradient boosting [structure+rho],router (steady),geomean regret,-0.06482,-0.09247,-0.04064,1,419,21
+jump,churning only,best-of-six on the scoring rows vs steady,gradient boosting [structure+rho],router (steady),worst-case regret,-0.33877,-0.63319,0.01606,0,419,21
+jump,churning only,best-of-six on the scoring rows vs steady,gradient boosting [structure+rho],router (steady),accuracy,0.01928,-0.05029,0.08115,0,419,21
+jump,churning only,best-of-six on the scoring rows vs +calib,gradient boosting [structure+rho],router (+calibration),geomean regret,-0.30934,-0.40063,-0.23436,1,419,21
+jump,churning only,best-of-six on the scoring rows vs +calib,gradient boosting [structure+rho],router (+calibration),worst-case regret,-1.1513,-1.4682,-0.46274,1,419,21
+jump,churning only,best-of-six on the scoring rows vs +calib,gradient boosting [structure+rho],router (+calibration),accuracy,0.01928,-0.05029,0.08115,0,419,21
+jump,churning only,pre-registered vs steady,logistic regression [structure+rho],router (steady),geomean regret,-0.06,-0.07982,-0.03988,1,419,21
+jump,churning only,pre-registered vs steady,logistic regression [structure+rho],router (steady),worst-case regret,-0.16837,-0.19892,0.01606,0,419,21
+jump,churning only,pre-registered vs steady,logistic regression [structure+rho],router (steady),accuracy,-0.02114,-0.07895,0.03123,0,419,21
+jump,churning only,pre-registered vs +calib,logistic regression [structure+rho],router (+calibration),geomean regret,-0.30452,-0.39056,-0.23265,1,419,21
+jump,churning only,pre-registered vs +calib,logistic regression [structure+rho],router (+calibration),worst-case regret,-0.9809,-1.41855,-0.46274,1,419,21
+jump,churning only,pre-registered vs +calib,logistic regression [structure+rho],router (+calibration),accuracy,-0.02114,-0.07895,0.03123,0,419,21
+jump,churning only,pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure+rho],router (steady),geomean regret,0.02525,-0.06442,0.14743,0,419,21
+jump,churning only,pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure+rho],router (steady),worst-case regret,4.07409,-0.12312,5.46214,0,419,21
+jump,churning only,pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure+rho],router (steady),accuracy,-0.1206,-0.26905,0.00477,0,419,21
+jump,churning only,pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure+rho],router (+calibration),geomean regret,-0.21926,-0.35344,-0.07286,1,419,21
+jump,churning only,pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure+rho],router (+calibration),worst-case regret,3.26156,-0.95812,4.87942,0,419,21
+jump,churning only,pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure+rho],router (+calibration),accuracy,-0.1206,-0.26905,0.00477,0,419,21
+jump,churning only,selection optimism,nested [structure+rho],best_of [structure+rho],geomean regret,0.00506,,,,419,21
+jump,churning only,nested vs steady,nested selection [structure+rho],router (steady),geomean regret,-0.05988,-0.08063,-0.03961,1,419,21
+jump,churning only,nested vs steady,nested selection [structure+rho],router (steady),worst-case regret,-0.1683,-0.19892,0.01606,0,419,21
+jump,churning only,nested vs steady,nested selection [structure+rho],router (steady),accuracy,0.00304,-0.06205,0.05742,0,419,21
+jump,churning only,nested vs +calib,nested selection [structure+rho],router (+calibration),geomean regret,-0.3044,-0.39024,-0.23259,1,419,21
+jump,churning only,nested vs +calib,nested selection [structure+rho],router (+calibration),worst-case regret,-0.98083,-1.41855,-0.46274,1,419,21
+jump,churning only,nested vs +calib,nested selection [structure+rho],router (+calibration),accuracy,0.00304,-0.06205,0.05742,0,419,21
+jump,churning only,learner spread,structure,,geomean regret span,0.06101,,,,419,21
+jump,churning only,per-learner LOMO,1-D threshold (tree d=1) [structure],,geomean regret,1.10874,,,,419,21
+jump,churning only,per-learner LOMO,decision tree d=3 [structure],,geomean regret,1.07631,,,,419,21
+jump,churning only,per-learner LOMO,logistic regression [structure],,geomean regret,1.04773,,,,419,21
+jump,churning only,per-learner LOMO,kNN (k=5) [structure],,geomean regret,1.07479,,,,419,21
+jump,churning only,per-learner LOMO,random forest (300) [structure],,geomean regret,1.05535,,,,419,21
+jump,churning only,per-learner LOMO,gradient boosting [structure],,geomean regret,1.05137,,,,419,21
+jump,churning only,best-of-six on the scoring rows vs steady,logistic regression [structure],router (steady),geomean regret,-0.03665,-0.08142,0.02415,0,419,21
+jump,churning only,best-of-six on the scoring rows vs steady,logistic regression [structure],router (steady),worst-case regret,2.21714,-0.6853,3.17485,0,419,21
+jump,churning only,best-of-six on the scoring rows vs steady,logistic regression [structure],router (steady),accuracy,-0.03538,-0.1119,0.0311,0,419,21
+jump,churning only,best-of-six on the scoring rows vs +calib,logistic regression [structure],router (+calibration),geomean regret,-0.28116,-0.38509,-0.18554,1,419,21
+jump,churning only,best-of-six on the scoring rows vs +calib,logistic regression [structure],router (+calibration),worst-case regret,1.4046,-1.52031,2.59048,0,419,21
+jump,churning only,best-of-six on the scoring rows vs +calib,logistic regression [structure],router (+calibration),accuracy,-0.03538,-0.1119,0.0311,0,419,21
+jump,churning only,pre-registered vs steady,logistic regression [structure],router (steady),geomean regret,-0.03665,-0.08142,0.02415,0,419,21
+jump,churning only,pre-registered vs steady,logistic regression [structure],router (steady),worst-case regret,2.21714,-0.6853,3.17485,0,419,21
+jump,churning only,pre-registered vs steady,logistic regression [structure],router (steady),accuracy,-0.03538,-0.1119,0.0311,0,419,21
+jump,churning only,pre-registered vs +calib,logistic regression [structure],router (+calibration),geomean regret,-0.28116,-0.38509,-0.18554,1,419,21
+jump,churning only,pre-registered vs +calib,logistic regression [structure],router (+calibration),worst-case regret,1.4046,-1.52031,2.59048,0,419,21
+jump,churning only,pre-registered vs +calib,logistic regression [structure],router (+calibration),accuracy,-0.03538,-0.1119,0.0311,0,419,21
+jump,churning only,pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure],router (steady),geomean regret,0.02525,-0.06442,0.14743,0,419,21
+jump,churning only,pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure],router (steady),worst-case regret,4.07409,-0.12312,5.46214,0,419,21
+jump,churning only,pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure],router (steady),accuracy,-0.1206,-0.26905,0.00477,0,419,21
+jump,churning only,pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),geomean regret,-0.21926,-0.35344,-0.07286,1,419,21
+jump,churning only,pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),worst-case regret,3.26156,-0.95812,4.87942,0,419,21
+jump,churning only,pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),accuracy,-0.1206,-0.26905,0.00477,0,419,21
+jump,churning only,selection optimism,nested [structure],best_of [structure],geomean regret,0.02783,,,,419,21
+jump,churning only,nested vs steady,nested selection [structure],router (steady),geomean regret,-0.00908,-0.0607,0.06862,0,419,21
+jump,churning only,nested vs steady,nested selection [structure],router (steady),worst-case regret,2.30592,0.17154,3.17485,1,419,21
+jump,churning only,nested vs steady,nested selection [structure],router (steady),accuracy,-0.06305,-0.14632,0.00718,0,419,21
+jump,churning only,nested vs +calib,nested selection [structure],router (+calibration),geomean regret,-0.2536,-0.34548,-0.15864,1,419,21
+jump,churning only,nested vs +calib,nested selection [structure],router (+calibration),worst-case regret,1.49338,-1.19685,2.59048,0,419,21
+jump,churning only,nested vs +calib,nested selection [structure],router (+calibration),accuracy,-0.06305,-0.14632,0.00718,0,419,21
+jump,workload mix (frozen + churning),learner spread,structure+rho,,geomean regret span,0.12783,,,,524,21
+jump,workload mix (frozen + churning),per-learner LOMO,1-D threshold (tree d=1) [structure+rho],,geomean regret,1.05615,,,,524,21
+jump,workload mix (frozen + churning),per-learner LOMO,decision tree d=3 [structure+rho],,geomean regret,1.04879,,,,524,21
+jump,workload mix (frozen + churning),per-learner LOMO,logistic regression [structure+rho],,geomean regret,1.15198,,,,524,21
+jump,workload mix (frozen + churning),per-learner LOMO,kNN (k=5) [structure+rho],,geomean regret,1.15799,,,,524,21
+jump,workload mix (frozen + churning),per-learner LOMO,random forest (300) [structure+rho],,geomean regret,1.03016,,,,524,21
+jump,workload mix (frozen + churning),per-learner LOMO,gradient boosting [structure+rho],,geomean regret,1.03163,,,,524,21
+jump,workload mix (frozen + churning),best-of-six on the scoring rows vs steady,random forest (300) [structure+rho],router (steady),geomean regret,-0.04574,-0.07053,-0.02077,1,524,21
+jump,workload mix (frozen + churning),best-of-six on the scoring rows vs steady,random forest (300) [structure+rho],router (steady),worst-case regret,0.12353,-0.16681,0.51923,0,524,21
+jump,workload mix (frozen + churning),best-of-six on the scoring rows vs steady,random forest (300) [structure+rho],router (steady),accuracy,-0.00499,-0.06298,0.0478,0,524,21
+jump,workload mix (frozen + churning),best-of-six on the scoring rows vs +calib,random forest (300) [structure+rho],router (+calibration),geomean regret,-0.25164,-0.31181,-0.19603,1,524,21
+jump,workload mix (frozen + churning),best-of-six on the scoring rows vs +calib,random forest (300) [structure+rho],router (+calibration),worst-case regret,-0.689,-1.41855,-0.12971,1,524,21
+jump,workload mix (frozen + churning),best-of-six on the scoring rows vs +calib,random forest (300) [structure+rho],router (+calibration),accuracy,-0.00499,-0.06298,0.0478,0,524,21
+jump,workload mix (frozen + churning),pre-registered vs steady,logistic regression [structure+rho],router (steady),geomean regret,0.07592,0.01604,0.15015,1,524,21
+jump,workload mix (frozen + churning),pre-registered vs steady,logistic regression [structure+rho],router (steady),worst-case regret,2.51885,2.04107,3.17485,1,524,21
+jump,workload mix (frozen + churning),pre-registered vs steady,logistic regression [structure+rho],router (steady),accuracy,-0.20418,-0.30095,-0.10878,1,524,21
+jump,workload mix (frozen + churning),pre-registered vs +calib,logistic regression [structure+rho],router (+calibration),geomean regret,-0.12999,-0.22072,-0.04004,1,524,21
+jump,workload mix (frozen + churning),pre-registered vs +calib,logistic regression [structure+rho],router (+calibration),worst-case regret,1.70632,0.71517,2.59048,1,524,21
+jump,workload mix (frozen + churning),pre-registered vs +calib,logistic regression [structure+rho],router (+calibration),accuracy,-0.20418,-0.30095,-0.10878,1,524,21
+jump,workload mix (frozen + churning),pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure+rho],router (steady),geomean regret,-0.01945,-0.04519,0.01112,0,524,21
+jump,workload mix (frozen + churning),pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure+rho],router (steady),worst-case regret,0.32993,0.02236,0.4902,1,524,21
+jump,workload mix (frozen + churning),pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure+rho],router (steady),accuracy,-0.09695,-0.16603,-0.0364,1,524,21
+jump,workload mix (frozen + churning),pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure+rho],router (+calibration),geomean regret,-0.22536,-0.27983,-0.17812,1,524,21
+jump,workload mix (frozen + churning),pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure+rho],router (+calibration),worst-case regret,-0.48261,-1.30205,-0.10895,1,524,21
+jump,workload mix (frozen + churning),pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure+rho],router (+calibration),accuracy,-0.09695,-0.16603,-0.0364,1,524,21
+jump,workload mix (frozen + churning),selection optimism,nested [structure+rho],best_of [structure+rho],geomean regret,0.00195,,,,524,21
+jump,workload mix (frozen + churning),nested vs steady,nested selection [structure+rho],router (steady),geomean regret,-0.04378,-0.06876,-0.01878,1,524,21
+jump,workload mix (frozen + churning),nested vs steady,nested selection [structure+rho],router (steady),worst-case regret,1.33819,-0.16681,2.04107,0,524,21
+jump,workload mix (frozen + churning),nested vs steady,nested selection [structure+rho],router (steady),accuracy,-0.00525,-0.06667,0.04962,0,524,21
+jump,workload mix (frozen + churning),nested vs +calib,nested selection [structure+rho],router (+calibration),geomean regret,-0.24969,-0.31041,-0.19352,1,524,21
+jump,workload mix (frozen + churning),nested vs +calib,nested selection [structure+rho],router (+calibration),worst-case regret,0.52566,-1.41855,1.44192,0,524,21
+jump,workload mix (frozen + churning),nested vs +calib,nested selection [structure+rho],router (+calibration),accuracy,-0.00525,-0.06667,0.04962,0,524,21
+jump,workload mix (frozen + churning),learner spread,structure,,geomean regret span,0.05108,,,,524,21
+jump,workload mix (frozen + churning),per-learner LOMO,1-D threshold (tree d=1) [structure],,geomean regret,1.14433,,,,524,21
+jump,workload mix (frozen + churning),per-learner LOMO,decision tree d=3 [structure],,geomean regret,1.15173,,,,524,21
+jump,workload mix (frozen + churning),per-learner LOMO,logistic regression [structure],,geomean regret,1.14982,,,,524,21
+jump,workload mix (frozen + churning),per-learner LOMO,kNN (k=5) [structure],,geomean regret,1.19541,,,,524,21
+jump,workload mix (frozen + churning),per-learner LOMO,random forest (300) [structure],,geomean regret,1.15598,,,,524,21
+jump,workload mix (frozen + churning),per-learner LOMO,gradient boosting [structure],,geomean regret,1.1686,,,,524,21
+jump,workload mix (frozen + churning),best-of-six on the scoring rows vs steady,1-D threshold (tree d=1) [structure],router (steady),geomean regret,0.06948,-0.00975,0.16406,0,524,21
+jump,workload mix (frozen + churning),best-of-six on the scoring rows vs steady,1-D threshold (tree d=1) [structure],router (steady),worst-case regret,4.13961,1.55017,5.46214,1,524,21
+jump,workload mix (frozen + churning),best-of-six on the scoring rows vs steady,1-D threshold (tree d=1) [structure],router (steady),accuracy,-0.18256,-0.29393,-0.07839,1,524,21
+jump,workload mix (frozen + churning),best-of-six on the scoring rows vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),geomean regret,-0.13643,-0.25508,-0.01533,1,524,21
+jump,workload mix (frozen + churning),best-of-six on the scoring rows vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),worst-case regret,3.32707,0.71517,4.87942,1,524,21
+jump,workload mix (frozen + churning),best-of-six on the scoring rows vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),accuracy,-0.18256,-0.29393,-0.07839,1,524,21
+jump,workload mix (frozen + churning),pre-registered vs steady,logistic regression [structure],router (steady),geomean regret,0.07376,0.01462,0.14777,1,524,21
+jump,workload mix (frozen + churning),pre-registered vs steady,logistic regression [structure],router (steady),worst-case regret,2.51638,1.98057,3.17485,1,524,21
+jump,workload mix (frozen + churning),pre-registered vs steady,logistic regression [structure],router (steady),accuracy,-0.20038,-0.29524,-0.10536,1,524,21
+jump,workload mix (frozen + churning),pre-registered vs +calib,logistic regression [structure],router (+calibration),geomean regret,-0.13215,-0.2219,-0.04322,1,524,21
+jump,workload mix (frozen + churning),pre-registered vs +calib,logistic regression [structure],router (+calibration),worst-case regret,1.70385,0.61218,2.59048,1,524,21
+jump,workload mix (frozen + churning),pre-registered vs +calib,logistic regression [structure],router (+calibration),accuracy,-0.20038,-0.29524,-0.10536,1,524,21
+jump,workload mix (frozen + churning),pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure],router (steady),geomean regret,0.06948,-0.00975,0.16406,0,524,21
+jump,workload mix (frozen + churning),pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure],router (steady),worst-case regret,4.13961,1.55017,5.46214,1,524,21
+jump,workload mix (frozen + churning),pre-registered (alt) vs steady,1-D threshold (tree d=1) [structure],router (steady),accuracy,-0.18256,-0.29393,-0.07839,1,524,21
+jump,workload mix (frozen + churning),pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),geomean regret,-0.13643,-0.25508,-0.01533,1,524,21
+jump,workload mix (frozen + churning),pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),worst-case regret,3.32707,0.71517,4.87942,1,524,21
+jump,workload mix (frozen + churning),pre-registered (alt) vs +calib,1-D threshold (tree d=1) [structure],router (+calibration),accuracy,-0.18256,-0.29393,-0.07839,1,524,21
+jump,workload mix (frozen + churning),selection optimism,nested [structure],best_of [structure],geomean regret,0.03503,,,,524,21
+jump,workload mix (frozen + churning),nested vs steady,nested selection [structure],router (steady),geomean regret,0.10393,0.02274,0.20401,1,524,21
+jump,workload mix (frozen + churning),nested vs steady,nested selection [structure],router (steady),worst-case regret,4.16581,2.04107,5.46214,1,524,21
+jump,workload mix (frozen + churning),nested vs steady,nested selection [structure],router (steady),accuracy,-0.22163,-0.33015,-0.11615,1,524,21
+jump,workload mix (frozen + churning),nested vs +calib,nested selection [structure],router (+calibration),geomean regret,-0.10198,-0.20929,0.01471,0,524,21
+jump,workload mix (frozen + churning),nested vs +calib,nested selection [structure],router (+calibration),worst-case regret,3.35328,1.08398,4.87942,1,524,21
+jump,workload mix (frozen + churning),nested vs +calib,nested selection [structure],router (+calibration),accuracy,-0.22163,-0.33015,-0.11615,1,524,21

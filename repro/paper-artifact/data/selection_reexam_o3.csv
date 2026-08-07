@@ -1,0 +1,37 @@
+section,key,value,n
+floor,median replicate ratio,1.0412,105
+floor,max replicate ratio,1.553,105
+floor,pairs over 1.10,18,105
+drift/workload mix (frozen + churning),acc gap best-both minus best-structure,0.1893,523
+drift/workload mix (frozen + churning),acc gap best-both minus router,0.0,523
+drift/workload mix (frozen + churning),unresolvable cells [operator median replicate floor],9,523
+drift/workload mix (frozen + churning),structure-gap share below floor [operator median replicate floor],0.0057,523
+drift/workload mix (frozen + churning),router-gap share below floor [operator median replicate floor],0.0,523
+drift/workload mix (frozen + churning),unresolvable cells [operator worst replicate floor],17,523
+drift/workload mix (frozen + churning),structure-gap share below floor [operator worst replicate floor],0.0076,523
+drift/workload mix (frozen + churning),router-gap share below floor [operator worst replicate floor],0.0,523
+drift/workload mix (frozen + churning),unresolvable cells [flat 10% parity band],10,523
+drift/workload mix (frozen + churning),structure-gap share below floor [flat 10% parity band],0.0076,523
+drift/workload mix (frozen + churning),router-gap share below floor [flat 10% parity band],0.0,523
+jump/churning only,acc gap best-both minus best-structure,0.0549,419
+jump/churning only,acc gap best-both minus router,0.0191,419
+jump/churning only,unresolvable cells [operator median replicate floor],9,419
+jump/churning only,structure-gap share below floor [operator median replicate floor],0.0024,419
+jump/churning only,router-gap share below floor [operator median replicate floor],0.0,419
+jump/churning only,unresolvable cells [operator worst replicate floor],41,419
+jump/churning only,structure-gap share below floor [operator worst replicate floor],0.0215,419
+jump/churning only,router-gap share below floor [operator worst replicate floor],0.0095,419
+jump/churning only,unresolvable cells [flat 10% parity band],53,419
+jump/churning only,structure-gap share below floor [flat 10% parity band],0.0477,419
+jump/churning only,router-gap share below floor [flat 10% parity band],0.0191,419
+jump/workload mix (frozen + churning),acc gap best-both minus best-structure,0.1775,524
+jump/workload mix (frozen + churning),acc gap best-both minus router,-0.0057,524
+jump/workload mix (frozen + churning),unresolvable cells [operator median replicate floor],12,524
+jump/workload mix (frozen + churning),structure-gap share below floor [operator median replicate floor],-0.0038,524
+jump/workload mix (frozen + churning),router-gap share below floor [operator median replicate floor],0.0,524
+jump/workload mix (frozen + churning),unresolvable cells [operator worst replicate floor],46,524
+jump/workload mix (frozen + churning),structure-gap share below floor [operator worst replicate floor],0.0115,524
+jump/workload mix (frozen + churning),router-gap share below floor [operator worst replicate floor],0.0038,524
+jump/workload mix (frozen + churning),unresolvable cells [flat 10% parity band],63,524
+jump/workload mix (frozen + churning),structure-gap share below floor [flat 10% parity band],0.0382,524
+jump/workload mix (frozen + churning),router-gap share below floor [flat 10% parity band],0.0153,524

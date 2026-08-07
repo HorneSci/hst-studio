@@ -1,0 +1,64 @@
+# claimlint default profile -- generic, domain-free, and meant to be replaced.
+#
+# Nothing project-specific belongs in this file. The elements below are the
+# ones almost every performance claim needs regardless of field; the ones your
+# project actually argues about go in your own .claimlint.toml, which layers on
+# top of this. See PUBLIC_PRIVATE.md.
+#
+# A claim is a number plus the conditions that make it reproducible. Missing
+# one of them does not make a claim weaker. It makes it not yet a claim: the
+# reader cannot tell what was measured, so they cannot tell whether it moved.
+
+[claimlint]
+# Characters either side of a ratio in which an element must appear. Not the
+# whole file: a term 130 lines away is usually describing something else.
+window = 1200
+
+include = ["**/*.md", "**/*.markdown", "**/*.html", "**/*.htm", "**/*.tex"]
+exclude = [
+  "**/node_modules/**",
+  "**/.venv/**",
+  "**/venv/**",
+  "**/site-packages/**",
+  "**/CHANGELOG.md",
+  "**/LICENSE*",
+]
+
+# Which elements a ratio-bearing document must evidence near each ratio.
+# Three by default -- enough to be worth running on day one, few enough that a
+# real corpus does not produce a wall of red. `strict` requires all six.
+required = ["baseline", "hardware", "sample_size"]
+
+[elements]
+# What was it faster *than*? "Faster than before" is not a baseline.
+
+# NOTE on whitespace: every multi-word alternative uses `\s+`, never a literal
+# space. Prose wraps, and a pattern written with a literal space silently stops
+# matching whenever the phrase straddles a line break -- which is a false
+# report, and a false report is how a linter gets switched off.
+baseline = "baseline|compared\\s+(?:to|with|against)|\\bvs\\.?\\b|versus|relative\\s+to|against\\s+(?:the|a|an|our|its|their)\\b"
+
+# Where did it run? A ratio a reader cannot re-run somewhere is a ratio they
+# cannot check.
+hardware = "\\bCPU\\b|\\bGPU\\b|\\bcores?\\b|\\bGHz\\b|\\bRAM\\b|\\bx86|\\barm64\\b|\\baarch64\\b|Apple M[0-9]|Xeon|Ryzen|EPYC|Threadripper|\\bEC2\\b|\\bn[12]-standard|\\bc[0-9][a-z]?\\.[0-9a-z]+|laptop|workstation|\\bnode\\b|\\bhost\\b|\\bmachine\\b"
+
+# How many times? A single run is an anecdote with a decimal point.
+sample_size = "\\bn\\s*=\\s*[0-9]|\\b[0-9]+\\s*(?:runs?|repeats?|repetitions?|trials?|iterations?|samples?|replicates?)\\b|\\brepeated\\b|\\bmedian\\s+of\\b|\\bmean\\s+of\\b"
+
+# What built or ran it? Toolchain and version.
+toolchain = "\\bg\\+\\+|\\bgcc\\b|\\bclang\\b|\\bMSVC\\b|\\brustc\\b|\\bLLVM\\b|\\bJDK\\b|\\bJVM\\b|\\bCPython\\b|\\bPython\\s+3|\\bNode(?:\\.js)?\\s+v?[0-9]|compiler|toolchain|-O[0-3]\\b"
+
+# How much did it vary? A ratio with no spread is a ratio you cannot compare
+# to another ratio.
+variance = "\\bstd(?:ev|\\.?\\s*dev(?:iation)?)?\\b|±|\\bIQR\\b|\\bCI\\b|confidence\\s+interval|\\bp9[059]\\b|\\bquartile|error\\s+bars?|\\bvariance\\b|\\bspread\\b"
+
+# On what input? A ratio without a workload is a ratio about nothing.
+workload = "\\bworkload\\b|\\bdataset\\b|\\bbenchmark\\b|\\binput\\s+size\\b|\\bcorpus\\b|\\bsuite\\b|\\btrace\\b"
+
+# Floors. If the corpus builder or the ratio regex stops matching, fail rather
+# than pass vacuously. Set these once from a real run, a little below the
+# observed counts. Zero means "not enforced", which you should treat as a TODO.
+[floors]
+files = 0
+claim_bearing_files = 0
+clean_files = 0

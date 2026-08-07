@@ -1,0 +1,10 @@
+# claimlint strict profile -- every element the default file defines.
+#
+# Layers on `default`: same regexes, longer `required` list, tighter window.
+# Use it on a corpus you are actively curating; on an inherited one it will
+# produce a wall of red, which is what the ratchet in claimlint.ratchet is for.
+
+[claimlint]
+extends = "default"
+window = 800
+required = ["baseline", "hardware", "sample_size", "toolchain", "variance", "workload"]

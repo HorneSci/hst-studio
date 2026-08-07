@@ -1,0 +1,11 @@
+churn_model,key,unit,geomean,median,p90,maximum,n
+drift,dens as shipped,applies,7.475,7.6882,34.1117,60.9428,523
+drift,"dens, bincount hoisted",applies,0.1595,0.2033,0.4279,1.2642,523
+drift,router calibration excess,applies,114.9702,190.4386,411.3156,688.677,523
+drift,probe / dens as shipped,ratio,15.3807,25.7004,89.5106,140.1821,523
+drift,probe / dens hoisted,ratio,720.8273,839.6803,5669.7674,17279.1016,523
+jump,dens as shipped,applies,7.4605,7.6882,34.1117,60.9428,524
+jump,"dens, bincount hoisted",applies,0.1589,0.2033,0.4279,1.2642,524
+jump,router calibration excess,applies,120.8838,165.5638,500.2022,1163.8445,524
+jump,probe / dens as shipped,ratio,16.2032,34.5769,88.7322,156.7607,524
+jump,probe / dens hoisted,ratio,760.9581,844.1298,5743.882,12300.4971,524

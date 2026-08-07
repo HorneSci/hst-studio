@@ -1,0 +1,23 @@
+[package]
+name = "hstcore"
+description = "Safe Rust bindings for the HST-core Embedded runtime (libhstcore). Requires a licensed library, sold separately."
+categories = ["api-bindings"]
+keywords = ["ffi", "bindings", "hstcore", "sparse", "delta"]
+readme = "README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+hstcore-sys = { path = "../hstcore-sys", version = "0.1.0" }
+thiserror.workspace = true
+
+# Only for reaching the recording stub's control symbols from the integration
+# tests; the crate itself never opens a library directly.
+[dev-dependencies]
+libloading.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

@@ -1,0 +1,29 @@
+\begin{tabular}{lcccc}
+\toprule
+\multicolumn{5}{l}{\emph{local drift}}\\
+\cmidrule(lr){1-5}
+& \multicolumn{2}{c}{frozen ($n{=}105$)} & \multicolumn{2}{c}{churning ($n{=}418$)}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+strategy & speedup & worst cell & speedup & worst cell \\
+\midrule
+always column-exact & 1.00$\times$ & 1.01$\times$ & 1.00$\times$ & 35.57$\times$ \\
+always block-scheduled & 0.48$\times$ & 5.85$\times$ & 5.57$\times$ & 1.00$\times$ \\
+measured router (steady state) & 0.96$\times$ & 1.21$\times$ & 5.12$\times$ & 3.09$\times$ \\
+\textbf{measured router (incl. calibration)} & 0.90$\times$ & 1.26$\times$ & 4.00$\times$ & 3.68$\times$ \\
+\midrule
+hindsight oracle \emph{(not achievable)} & 1.00$\times$ & 1.00$\times$ & 5.57$\times$ & 1.00$\times$ \\
+\midrule
+\multicolumn{5}{l}{\emph{uniform jump}}\\
+\cmidrule(lr){1-5}
+& \multicolumn{2}{c}{frozen ($n{=}105$)} & \multicolumn{2}{c}{churning ($n{=}419$)}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+strategy & speedup & worst cell & speedup & worst cell \\
+\midrule
+always column-exact & 1.00$\times$ & 1.03$\times$ & 1.00$\times$ & 19.92$\times$ \\
+always block-scheduled & 0.47$\times$ & 5.87$\times$ & 1.92$\times$ & 2.40$\times$ \\
+measured router (steady state) & 0.96$\times$ & 1.21$\times$ & 1.90$\times$ & 1.91$\times$ \\
+\textbf{measured router (incl. calibration)} & 0.90$\times$ & 1.27$\times$ & 1.55$\times$ & 2.75$\times$ \\
+\midrule
+hindsight oracle \emph{(not achievable)} & 1.00$\times$ & 1.00$\times$ & 2.06$\times$ & 1.00$\times$ \\
+\bottomrule
+\end{tabular}

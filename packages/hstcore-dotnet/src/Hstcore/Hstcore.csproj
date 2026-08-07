@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Required: the LibraryImport source generator emits unsafe marshalling
+         code. This does not mean any hand-written unsafe code exists here — grep
+         for `unsafe` in src/ and you will find none. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>HorneSci.Hstcore</RootNamespace>
+    <AssemblyName>HorneSci.Hstcore</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Description>Bindings for the HST-core Embedded ABI. Binds libhstcore, a shared library this package does not contain -- Apache-2.0 and unmetered in an HST Studio download's bin/, gated only in the separate metered build of the same library; this package is only the binding.</Description>
+  </PropertyGroup>
+</Project>
