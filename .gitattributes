@@ -1,0 +1,13 @@
+# Every file in this tree ships byte-exact. No line-ending conversion, ever.
+#
+# This tree is a BUILT ARTIFACT: SHA256SUMS at the root records the bytes of
+# every executable plus install.sh and verify.sh, and verify.sh checks them
+# before anything in bin/ runs. Git's autocrlf would rewrite text files at
+# checkout on Windows, which breaks that promise twice over -- the sums file
+# itself gains \r on every filename (so `sha256sum -c` looks for files that
+# do not exist), and the converted scripts stop matching the hashes computed
+# at build time. Found on this repo's own first Windows CI run, not guessed.
+#
+# `-text` means "never convert", which is different from `text=false` folklore
+# and from relying on every clone having core.autocrlf unset.
+* -text
