@@ -61,9 +61,10 @@ jobs:
           # credential in a public-repository checkout.
           persist-credentials: false
 
-      # Pinned, not "latest": a pass that depends on a runner image bumping
-      # Python is not a fact about this tree. install.sh's own floor is 3.11.
+      # Keep the Unix cells on Python 3.12. The Windows runner supplies its
+      # own supported Python; install.sh itself enforces the 3.11 floor.
       - uses: actions/setup-python@v5
+        if: matrix.os != 'Windows'
         with:
           python-version: "3.12"
 
@@ -96,6 +97,8 @@ jobs:
           fi
 
       - name: install
+        env:
+          PYTHON: ${{ matrix.os == 'Windows' && 'python' || 'python3' }}
         run: |
           mkdir -p ci-logs
           ./install.sh 2>&1 | tee "ci-logs/install-${{ matrix.os }}.log"
