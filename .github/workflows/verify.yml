@@ -14,8 +14,8 @@
 # reports the skips honestly.
 #
 # No continue-on-error anywhere: a red cell is the finding, not a nuisance.
-# The timings verify.sh prints here are worthless -- shared, unpinned,
-# virtualised hardware -- and nothing here treats them as measurements.
+# The timings verify.sh prints here are not benchmark measurements. Nothing
+# in this workflow treats them as such.
 
 name: verify
 
@@ -34,16 +34,22 @@ concurrency:
 jobs:
   verify:
     name: verify ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    runs-on: [self-hosted, "${{ matrix.runner }}"]
     strategy:
       # One platform failing must not cancel the others: which platforms work
       # is the question, and fail-fast destroys the answer.
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: Linux
+            runner: bench
+          - os: macOS
+            runner: mini
+          - os: Windows
+            runner: hunterpc
 
-    # bash everywhere, including Windows: Git Bash ships on GitHub's Windows
-    # runners, so install.sh and verify.sh run as written.
+    # bash everywhere, including Windows: the HorneSci Windows runner provides
+    # Git Bash so install.sh and verify.sh run as written.
     defaults:
       run:
         shell: bash
