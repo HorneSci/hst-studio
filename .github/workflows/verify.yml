@@ -60,6 +60,7 @@ jobs:
         # public source. Fetch without a workflow credential so every owned
         # runner takes the same checkout path.
         run: |
+          rm -rf .git
           git init .
           git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
           git fetch --depth=1 origin "$GITHUB_SHA"
