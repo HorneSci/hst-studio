@@ -56,6 +56,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Verification only reads the checked-out tree. Avoid leaving a
+          # credential in a public-repository checkout.
+          persist-credentials: false
 
       # Pinned, not "latest": a pass that depends on a runner image bumping
       # Python is not a fact about this tree. install.sh's own floor is 3.11.
