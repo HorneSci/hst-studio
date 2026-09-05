@@ -55,11 +55,15 @@ jobs:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          # Verification only reads the checked-out tree. Avoid leaving a
-          # credential in a public-repository checkout.
-          persist-credentials: false
+      - name: checkout public source
+        # This repository has no submodules and the verification only reads
+        # public source. Fetch without a workflow credential so every owned
+        # runner takes the same checkout path.
+        run: |
+          git init .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          git fetch --depth=1 origin "$GITHUB_SHA"
+          git checkout --detach --force FETCH_HEAD
 
       # Keep the Unix cells on Python 3.12. The Windows runner supplies its
       # own supported Python; install.sh itself enforces the 3.11 floor.
