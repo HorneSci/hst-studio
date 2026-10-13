@@ -296,6 +296,62 @@ class OfflineScriptTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("present but does not import", result.stdout)
 
+    def test_node_spec_reporter_skips_are_partial(self) -> None:
+        shutil.copy2(ROOT / "verify.sh", self.root / "verify.sh")
+        (self.root / "packages" / "hstcore-node").mkdir(parents=True)
+        write_executable(self.root / "venv" / "bin" / "python", FAKE_PYTHON)
+        write_executable(self.root / "tools" / "node", "#!/bin/sh\nexit 0\n")
+        write_executable(self.root / "tools" / "npm",
+                         "#!/bin/sh\nprintf 'ℹ pass 1\\nℹ fail 0\\nℹ skipped 11\\n'\n")
+        env = os.environ.copy()
+        env["HST_VENV"] = str(self.root / "venv")
+        env["PATH"] = str(self.root / "tools") + os.pathsep + env["PATH"]
+        result = subprocess.run(["bash", "verify.sh", "--quick"], cwd=self.root,
+                                env=env, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("hstcore-node conformance — some checks skipped", result.stdout)
+        self.assertIn("1 partial", result.stdout)
+
+    def rust_tree(self) -> tuple[dict[str, str], Path]:
+        shutil.copy2(ROOT / "verify.sh", self.root / "verify.sh")
+        (self.root / "packages" / "hstcore-rs").mkdir(parents=True)
+        write_executable(self.root / "venv" / "bin" / "python", FAKE_PYTHON)
+        log = self.root / "cargo.jsonl"
+        write_executable(self.root / "tools" / "cargo", r'''#!/usr/bin/env python3
+import json, os, sys
+with open(os.environ["FAKE_CARGO_LOG"], "a") as log:
+    log.write(json.dumps(sys.argv[1:]) + "\n")
+if sys.argv[1] == "build" and os.environ.get("FAKE_CARGO_BUILD_FAIL") == "1":
+    print("error: recording stub did not build")
+    sys.exit(23)
+sys.exit(0)
+''')
+        env = os.environ.copy()
+        env.update(HST_VENV=str(self.root / "venv"), FAKE_CARGO_LOG=str(log))
+        env["PATH"] = str(self.root / "tools") + os.pathsep + env["PATH"]
+        return env, log
+
+    def test_rust_stub_is_built_offline_before_workspace_tests(self) -> None:
+        env, log = self.rust_tree()
+        result = subprocess.run(["bash", "verify.sh", "--quick"], cwd=self.root,
+                                env=env, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        calls = [json.loads(line) for line in log.read_text().splitlines()]
+        self.assertEqual(calls, [["build", "-p", "hst-stub", "--offline"],
+                                 ["test", "--workspace", "--offline"]])
+        self.assertIn("hstcore-rs conformance", result.stdout)
+
+    def test_failed_rust_stub_build_stops_suite_and_fails_verify(self) -> None:
+        env, log = self.rust_tree()
+        env["FAKE_CARGO_BUILD_FAIL"] = "1"
+        result = subprocess.run(["bash", "verify.sh", "--quick"], cwd=self.root,
+                                env=env, text=True, capture_output=True)
+        self.assertNotEqual(result.returncode, 0)
+        calls = [json.loads(line) for line in log.read_text().splitlines()]
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0][0], "build")
+        self.assertIn("recording stub did not build", result.stdout)
+
     def test_verifier_requires_manifest_when_bundled_binary_exists(self) -> None:
         shutil.copy2(ROOT / "verify.sh", self.root / "verify.sh")
         write_executable(self.root / "bin" / "hst-compile.fake", "#!/bin/sh\nexit 0\n")

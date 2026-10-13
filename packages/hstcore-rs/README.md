@@ -144,9 +144,14 @@ cargo run --example hot_loop -- /opt/hst/libhstcore.so op.bin "$(cat prod.licens
 ## Tests
 
 ```bash
-cargo test --workspace     # 51 tests. --workspace matters: it builds the stub.
+cargo build -p hst-stub    # produce the recording stub shared library first
+cargo test --workspace    # run all crates, ABI checks and compiler-rule tests
 cargo clippy --workspace --all-targets
 ```
+
+For cached, air-gapped dependencies, append `--offline` to both build and test
+commands. `cargo test` alone can build only the stub test executable, leaving the
+shared library unavailable to the ABI tests. `verify.sh` builds it first.
 
 **No test needs, or stands in for, a real `libhstcore`.** They split three
 ways:

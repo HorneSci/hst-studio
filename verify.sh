@@ -356,7 +356,7 @@ fi
 
 if [ -d packages/hstcore-py ]; then
   if "$VPY" -c "import pytest" >/dev/null 2>&1; then
-    if out="$("$VPY" -m pytest -q packages/hstcore-py/tests 2>&1)"; then
+    if out="$("$VPY" -m pytest -q -o addopts='' packages/hstcore-py/tests 2>&1)"; then
       if printf '%s\n' "$out" | grep -qE '[0-9]+ skipped'; then
         part "hstcore-py conformance — some checks skipped on this machine"
         why "$out" 8
@@ -394,7 +394,7 @@ if [ -d packages/hstcore-node ]; then
   elif ! (cd packages/hstcore-node && node --input-type=module -e 'import("koffi")' >/dev/null 2>&1); then
     skip "hstcore-node conformance — declared koffi dependency is not installed"
   elif out="$(cd packages/hstcore-node && npm --offline test 2>&1)"; then
-    if printf '%s\n' "$out" | grep -qE '^# skipped [1-9]'; then
+    if printf '%s\n' "$out" | grep -qE '^(#|ℹ) skipped [1-9]'; then
       part "hstcore-node conformance — some checks skipped on this machine"
       why "$out" 8
     else
@@ -431,7 +431,9 @@ fi
 if [ -d packages/hstcore-rs ]; then
   if ! command -v cargo >/dev/null 2>&1; then
     skip "hstcore-rs conformance — Cargo unavailable"
-  elif out="$(cd packages/hstcore-rs && CARGO_NET_OFFLINE=true cargo test --workspace --offline 2>&1)"; then
+  elif out="$(cd packages/hstcore-rs && \
+      CARGO_NET_OFFLINE=true cargo build -p hst-stub --offline 2>&1 && \
+      CARGO_NET_OFFLINE=true cargo test --workspace --offline 2>&1)"; then
     ok "hstcore-rs conformance"
   elif printf '%s\n' "$out" | grep -qE 'no matching package named|attempting to make an HTTP request, but --offline was specified|failed to download'; then
     skip "hstcore-rs conformance — dependencies are not cached for offline use"
