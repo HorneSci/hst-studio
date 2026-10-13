@@ -76,7 +76,21 @@ quarter of the state dirty per batch, there is nothing left to skip. The
 test suite guards both removals three ways, including behaviourally, so a
 renamed revival fails the build.
 
-## Run it
+## Install and run
+
+From the root of this download, `./install.sh` installs fitscreen into `.venv`
+alongside the other tools. Activate that environment before running the examples:
+
+```bash
+./install.sh
+source .venv/bin/activate
+python -m fitscreen --conditions
+```
+
+For fitscreen alone, install the local package with
+`python3 -m pip install ./packages/fitscreen`. It needs no runtime library or
+third-party dependencies. The commands below use your own trace paths; the
+shipped sample commands are run from `packages/fitscreen/`.
 
 ```bash
 python3 -m fitscreen events.csv --batch-ms 5000 --hierarchy tags.csv

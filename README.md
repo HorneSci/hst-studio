@@ -4,16 +4,21 @@ A delta-aware sparse linear algebra runtime, and the tooling to find out whether
 helps you.
 
 ```bash
-./install.sh      # venv + three Apache-2.0 packages, ~1 minute
+./install.sh      # venv + four tools and the Python runtime binding, ~1 minute
 ./verify.sh       # runs everything and reports what worked on YOUR machine
 ```
+
+`./verify.sh --quick` checks imports, tests, binding conformance and the small
+runtime correctness example while omitting the measurement demo and paper
+reproduction. Omitted stages are reported as skips; this is a usability check.
 
 Python 3.11+. No licence key, no account. The runtime **is** in this
 download — `bin/` holds the library and the tools — and it is Apache-2.0, like the
 packages beside it. Two subtrees under `repro/` are not; *Licence*, below, is exact
 about both.
 
-**A C++ compiler is optional.** Exactly one stage of one step uses one — the
+**Compilers are optional.** Binding conformance suites use a C compiler and their
+language toolchains when available. A C++ compiler is used by the
 correctness self-test of the paper artifact's open reference arm — and it is
 skipped, by name and with a reason, when no named GCC (`g++-13`, `g++-14`,
 `g++-12`, or your own `CXX=`) is installed. That stage quotes no timing, so its
@@ -38,15 +43,19 @@ else still runs):
 
 ```bash
 # on a networked machine, matching the target's Python and platform
-python3 -m pip download 'numpy>=1.24' 'scipy>=1.10' 'setuptools>=68' wheel -d wheels/
+python3 -m pip download 'numpy>=1.24' 'scipy>=1.10' 'setuptools>=68' wheel pytest -d wheels/
 # on the air-gapped machine, beside this README
 ./install.sh --wheels ./wheels
+./verify.sh --wheels ./wheels
 ```
 
-`setuptools` and `wheel` are in that list because the three packages here are built
+`setuptools` and `wheel` are in that list because the four tool packages here are built
 from source at install time, and pip builds them in an isolated environment that it
 also expects to populate from your index. Leave them out and the install fails on
 `setuptools`, not on `numpy` — which reads like a different problem than it is.
+`pytest` lets `verify.sh` run the Python binding suites. Passing `--wheels` to both
+commands makes any missing Python tool resolve only from that wheel directory; a
+missing wheel is reported as a skipped test dependency and cannot trigger network use.
 
 We do not vendor those wheels into the download: they are ~90 MB, platform-specific,
 and would go stale against your Python version rather than ours.
@@ -348,6 +357,17 @@ checks a built library's exports against it. Run that first if a binding fails t
 library missing `hst_apply_shadow` or `hst_set_input` is a **stale build** from before the
 1.3 → 1.4 bump, not a different ABI, and every binding reports it by name.
 
+`./verify.sh` runs the checked-in Python, Java, Node, Go and Rust conformance suites when
+their local tools and offline dependencies are available. Missing tools or cached
+dependencies are labeled `skip`; a test failure is `FAIL`. The .NET binding currently has
+no conformance test project in this tree, so verify reports it as not applicable instead
+of counting a compiler's presence as a test. The shared C stub is a plumbing fixture and
+does not test real runtime mathematics or platform support.
+
+Maintainers can run the installer/verifier contract regressions with
+`python3 -m unittest discover -s tests -v`; these POSIX tests use a fake pip executable
+and do not install packages or contact an index.
+
 **This is an in-process library.** Putting it behind REST or IPC destroys the win it
 exists to deliver — per-call overhead has been worth more here than every kernel change
 combined. If your call path crosses a process boundary, measure that path, not this one.
@@ -404,7 +424,8 @@ after planning around it.
 
 What you *can* check about a binary you cannot read: `SHA256SUMS` at the root of this
 tree covers every file in `bin/` plus `install.sh` and `verify.sh` — `shasum -a 256 -c
-SHA256SUMS` verifies what you received, and `./verify.sh` runs that check first — and
+SHA256SUMS` verifies what you received, and `./verify.sh` stops before running bundled
+binaries when the manifest is missing, cannot be checked, or has a mismatch — and
 `packages/hstcore-abi/abi.json` plus `validate.py` beside it check the library's exports
 against the documented ABI. There is no key, token, quota or expiry anywhere in this
 tree.

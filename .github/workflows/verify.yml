@@ -85,6 +85,9 @@ jobs:
             shasum -a 256 -c SHA256SUMS
           fi
 
+      - name: installer and verifier regressions
+        run: python3 -m unittest discover -s tests -v
+
       - name: install
         run: |
           mkdir -p ci-logs
