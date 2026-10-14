@@ -61,8 +61,20 @@ jobs:
       # Pinned, not "latest": a pass that depends on a runner image bumping
       # Python is not a fact about this tree. install.sh's own floor is 3.11.
       - uses: actions/setup-python@v7
+        if: matrix.os != 'macos'
         with:
           python-version: "3.12"
+
+      # Use the existing interpreter proven by the umbrella Mac install job.
+      # setup-python's macOS archive installs under /Users/runner, which the
+      # owned runner account cannot create.
+      - name: existing owned macOS Python
+        if: matrix.os == 'macos'
+        run: |
+          FW=/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13/bin
+          "$FW/python3.13" -c 'import platform; assert platform.python_version() == "3.13.5"'
+          echo "$FW" >> "$GITHUB_PATH"
+          echo "/opt/homebrew/opt/python@3.13/libexec/bin" >> "$GITHUB_PATH"
 
       # Printed, not asserted: when a cell goes red later, the first question
       # is what changed underneath it.
