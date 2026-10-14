@@ -3,6 +3,8 @@
 #
 # Runs everything this tree can prove on your machine and reports what passed.
 # Takes about a minute. Needs ./install.sh to have been run first.
+# For air-gapped verification, pass the same wheel directory used by install.sh:
+#     ./verify.sh --wheels ./wheels
 #
 # This exists because "it installed" and "it works" are different claims, and
 # only the second one is worth anything to you.
@@ -10,9 +12,34 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$HERE"
+cd "$HERE" || exit
 
 VENV="${HST_VENV:-$HERE/.venv}"
+
+# An optional wheelhouse keeps the one on-demand test dependency (pytest) offline
+# too. Supplying --wheels always implies --no-index, including when pytest is not
+# already installed.
+WHEELS=""
+QUICK=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --wheels)   WHEELS="${2:-}"; [ -n "$WHEELS" ] || { printf '  --wheels needs a directory.\n' >&2; exit 2; }; shift 2 ;;
+    --wheels=*) WHEELS="${1#*=}"; [ -n "$WHEELS" ] || { printf "  --wheels needs a directory.\n" >&2; exit 2; }; shift ;;
+    --quick) QUICK=1; shift ;;
+    -h|--help)
+      printf '\nusage: ./verify.sh [--wheels DIR] [--quick]\n\n  --wheels DIR   install missing test tools offline from DIR (implies --no-index)\n  --quick        omit the measurement demo and paper reproduction\n\n'
+      exit 0 ;;
+    *) printf '  Unknown argument: %s (try --help)\n' "$1" >&2; exit 2 ;;
+  esac
+done
+
+PIP_SRC=()
+if [ -n "$WHEELS" ]; then
+  [ -d "$WHEELS" ] || { printf '  --wheels: no such directory: %s\n' "$WHEELS" >&2; exit 2; }
+  case "$WHEELS" in /*) ;; *) WHEELS="$HERE/${WHEELS#./}" ;; esac
+  PIP_SRC=(--no-index --find-links "$WHEELS")
+fi
+vpip() { "$VPY" -m pip "$@"; }
 
 # bin/ everywhere except Windows, where CPython writes Scripts/ and names the
 # interpreter python.exe. install.sh resolves this the same way and for the same
@@ -97,15 +124,30 @@ if [ -f SHA256SUMS ]; then
   elif command -v sha256sum >/dev/null 2>&1; then SUMCMD="sha256sum"
   fi
   if [ -z "$SUMCMD" ]; then
-    skip "sums — neither shasum nor sha256sum on this machine"
+    bad "sums — cannot verify the supplied binaries without shasum or sha256sum"
+    note "Install one of those tools, then rerun verify.sh. No bundled binary was run."
+    exit 1
   elif out="$($SUMCMD -c SHA256SUMS 2>&1)"; then
     ok "sums — bin/ matches SHA256SUMS"
   else
     bad "sums — a file does not match SHA256SUMS. Do not run it; re-download."
     printf '%s\n' "$out" | grep -v ': OK$' | sed 's/^/        /'
+    note "No bundled binary was run."
+    exit 1
   fi
 else
-  tier "SHA256SUMS — not in this tree"
+  _has_binary=0
+  if [ -d bin ]; then
+    for _candidate in bin/*; do
+      [ -f "$_candidate" ] && { _has_binary=1; break; }
+    done
+  fi
+  if [ "$_has_binary" -eq 1 ]; then
+    bad "SHA256SUMS — required because this tree contains bundled runtime binaries"
+    note "No bundled binary was run."
+    exit 1
+  fi
+  tier "SHA256SUMS — no bundled runtime binaries in this tree"
 fi
 
 if [ ! -x "$VPY" ]; then
@@ -121,9 +163,10 @@ done
 # --- 2. their own test suites ----------------------------------------------
 # Ours passing on our machine is not evidence about yours.
 # Install pytest on demand rather than re-execing: an exec here would repeat
-# every check above it and print the banner twice.
+# every check above it and print the banner twice. With --wheels, the request is
+# forced through the wheelhouse with --no-index; it cannot reach the network.
 if ! "$VPY" -c "import pytest" >/dev/null 2>&1; then
-  "$VPY" -m pip install -q pytest >/dev/null 2>&1 || true
+  vpip install -q ${PIP_SRC[@]+"${PIP_SRC[@]}"} pytest >/dev/null 2>&1 || true
 fi
 
 if "$VPY" -c "import pytest" >/dev/null 2>&1; then
@@ -144,7 +187,9 @@ else
 fi
 
 # --- 3. a real measurement -------------------------------------------------
-if [ -f packages/spdelta/examples/ladder_demo.py ]; then
+if [ "$QUICK" -eq 1 ]; then
+  skip "spdelta measurement demo — omitted by --quick"
+elif [ -f packages/spdelta/examples/ladder_demo.py ]; then
   if out="$("$VPY" packages/spdelta/examples/ladder_demo.py 2>&1)"; then
     if printf '%s' "$out" | grep -q "vs masked_row_scan"; then
       ok "spdelta ladder demo — measured on THIS machine"
@@ -200,7 +245,9 @@ fi
 # re-derives nothing and cannot drift from what the build did.
 _field() { printf '%s\n' "$1" | tr ' ' '\n' | grep "^$2=" | cut -d= -f2- | head -1; }
 
-if [ -x repro/paper-artifact/build.sh ]; then
+if [ "$QUICK" -eq 1 ]; then
+  skip "paper reproduction — omitted by --quick"
+elif [ -x repro/paper-artifact/build.sh ]; then
   if out="$(cd repro/paper-artifact && PYTHON="$VPY" PATH="$VBIN:$PATH" ./build.sh 2>&1)"; then
     sum="$(printf '%s\n' "$out" | grep '^BUILD SUMMARY ' | head -1)"
     if [ -z "$sum" ]; then
@@ -273,12 +320,144 @@ else
   tier "paper artifact — not in this tree"
 fi
 
+# --- 4b. language binding conformance ---------------------------------------
+# These suites depend on their own binding source and test fixtures, not on the
+# presence of a distributable runtime in bin/.
+# Run the staged binding suites where their declared tools and dependencies
+# are already available. Never install language packages or contact a registry
+# from verify.sh. The .NET binding currently has no checked-in conformance
+# test project; report that as n/a instead of treating dotnet's presence as a
+# passing suite.
+STUB_BUILDER="packages/hstcore-abi/conformance/build-stub.sh"
+SHARED_STUB=""
+if [ -x "$STUB_BUILDER" ]; then
+  if [ -x /usr/bin/cc ] || command -v cc >/dev/null 2>&1 \
+     || command -v gcc >/dev/null 2>&1 || command -v clang >/dev/null 2>&1; then
+    if out="$("$STUB_BUILDER" 2>&1)"; then
+      case "$(uname -s)" in
+        Darwin) SHARED_STUB="$HERE/packages/hstcore-abi/conformance/lib/libhstcore.dylib" ;;
+        *)      SHARED_STUB="$HERE/packages/hstcore-abi/conformance/lib/libhstcore.so" ;;
+      esac
+      if [ -f "$SHARED_STUB" ]; then
+        ok "shared binding conformance stub built"
+      else
+        SHARED_STUB=""
+        bad "shared binding stub build reported success but produced no library"
+        why "$out"
+      fi
+    else
+      bad "shared binding conformance stub build"
+      why "$out"
+    fi
+  else
+    skip "shared binding conformance stub — no C compiler on this machine"
+  fi
+fi
+
+if [ -d packages/hstcore-py ]; then
+  if "$VPY" -c "import pytest" >/dev/null 2>&1; then
+    if out="$("$VPY" -m pytest -q -o addopts='' packages/hstcore-py/tests 2>&1)"; then
+      if printf '%s\n' "$out" | grep -qE '[0-9]+ skipped'; then
+        part "hstcore-py conformance — some checks skipped on this machine"
+        why "$out" 8
+      else
+        ok "hstcore-py conformance"
+      fi
+    else
+      bad "hstcore-py conformance"
+      why "$out"
+    fi
+  else
+    skip "hstcore-py conformance — pytest unavailable in ${VENV#$HERE/}"
+  fi
+fi
+
+JAVA_MAJOR="$(javac -version 2>&1 | sed -n 's/^javac \([0-9][0-9]*\).*/\1/p')"
+if [ -d packages/hstcore-java ]; then
+  if ! command -v javac >/dev/null 2>&1 || ! command -v java >/dev/null 2>&1; then
+    skip "hstcore-java conformance — JDK unavailable"
+  elif [ -z "$JAVA_MAJOR" ] || [ "$JAVA_MAJOR" -lt 22 ]; then
+    skip "hstcore-java conformance — JDK 22+ required"
+  elif [ -z "$SHARED_STUB" ]; then
+    skip "hstcore-java conformance — shared stub unavailable"
+  elif out="$(cd packages/hstcore-java && HSTCORE_STUB="$SHARED_STUB" ./build.sh 2>&1)"; then
+    ok "hstcore-java conformance"
+  else
+    bad "hstcore-java conformance"
+    why "$out"
+  fi
+fi
+
+if [ -d packages/hstcore-node ]; then
+  if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+    skip "hstcore-node conformance — Node.js/npm unavailable"
+  elif ! (cd packages/hstcore-node && node --input-type=module -e 'import("koffi")' >/dev/null 2>&1); then
+    skip "hstcore-node conformance — declared koffi dependency is not installed"
+  elif out="$(cd packages/hstcore-node && npm --offline test 2>&1)"; then
+    if printf '%s\n' "$out" | grep -qE '^(#|ℹ) skipped [1-9]'; then
+      part "hstcore-node conformance — some checks skipped on this machine"
+      why "$out" 8
+    else
+      ok "hstcore-node conformance"
+    fi
+  else
+    bad "hstcore-node conformance"
+    why "$out"
+  fi
+fi
+
+if [ -d packages/hstcore-go ]; then
+  if ! command -v go >/dev/null 2>&1; then
+    skip "hstcore-go conformance — Go unavailable"
+  elif [ -z "$SHARED_STUB" ]; then
+    skip "hstcore-go conformance — shared stub unavailable"
+  elif out="$(cd packages/hstcore-go && \
+      CGO_ENABLED=1 CGO_LDFLAGS="-L$(dirname "$SHARED_STUB") -Wl,-rpath,$(dirname "$SHARED_STUB")" \
+      LD_LIBRARY_PATH="$(dirname "$SHARED_STUB"):${LD_LIBRARY_PATH:-}" \
+      DYLD_FALLBACK_LIBRARY_PATH="$(dirname "$SHARED_STUB"):${DYLD_FALLBACK_LIBRARY_PATH:-}" \
+      GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local go test -v ./... 2>&1)"; then
+    if printf '%s\n' "$out" | grep -qE 'SKIP:|[0-9]+ skipped'; then
+      part "hstcore-go conformance — some checks skipped on this machine"
+      why "$out" 8
+    else
+      ok "hstcore-go conformance"
+    fi
+  else
+    bad "hstcore-go conformance"
+    why "$out"
+  fi
+fi
+
+if [ -d packages/hstcore-rs ]; then
+  if ! command -v cargo >/dev/null 2>&1; then
+    skip "hstcore-rs conformance — Cargo unavailable"
+  elif out="$(cd packages/hstcore-rs && \
+      CARGO_NET_OFFLINE=true cargo build -p hst-stub --offline 2>&1 && \
+      CARGO_NET_OFFLINE=true cargo test --workspace --offline 2>&1)"; then
+    ok "hstcore-rs conformance"
+  elif printf '%s\n' "$out" | grep -qE 'no matching package named|attempting to make an HTTP request, but --offline was specified|failed to download'; then
+    skip "hstcore-rs conformance — dependencies are not cached for offline use"
+    why "$out" 8
+  else
+    bad "hstcore-rs conformance"
+    why "$out"
+  fi
+fi
+
+if [ -d packages/hstcore-dotnet ]; then
+  tier "hstcore-dotnet conformance — no test project is included in this tree"
+fi
+
 # --- 5. the runtime, if this tree has one ----------------------------------
 if [ -d bin ]; then
   if "$VPY" -c "import hstcore" >/dev/null 2>&1; then
     ok "hstcore binding imports"
   else
-    skip "runtime binding not installed"
+    if [ -d packages/hstcore-py ]; then
+      bad "runtime binding is present but does not import — rerun install.sh"
+    else
+      tier "runtime binding — not in this tree"
+    fi
   fi
 
   # The library's exports against the ABI manifest. This is the check worth
@@ -300,23 +479,6 @@ if [ -d bin ]; then
       fi
     fi
   fi
-
-  # Which bindings you can actually build here. Reported rather than run: a
-  # binding's own conformance suite needs a C compiler for the shared stub, and
-  # a check that quietly skips on a missing toolchain is one you cannot trust.
-  for b in py java node go rs dotnet; do
-    d="packages/hstcore-$b"
-    [ -d "$d" ] || continue
-    case "$b" in
-      py)     tool=python3 ;;   java) tool=javac ;;  node) tool=node ;;
-      go)     tool=go ;;        rs)   tool=cargo ;;  dotnet) tool=dotnet ;;
-    esac
-    if command -v "$tool" >/dev/null 2>&1; then
-      ok "hstcore-$b staged, $tool present — see $d/README.md"
-    else
-      skip "hstcore-$b staged, no $tool on this machine"
-    fi
-  done
 
   # The runtime, actually run. This said "needs a signed licence token (see
   # EULA.md)" until 2026-08-06 -- pointing at a file this tree does not contain,

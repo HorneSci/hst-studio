@@ -26,7 +26,7 @@ die()  { printf '\n  INSTALL FAILED\n\n  %s\n\n' "$*" >&2; exit 1; }
 # spdelta needs numpy and scipy from PyPI. On an air-gapped machine, fetch the
 # wheels somewhere with network and point at them:
 #
-#     python3 -m pip download 'numpy>=1.24' 'scipy>=1.10' 'setuptools>=68' wheel -d wheels/
+#     python3 -m pip download 'numpy>=1.24' 'scipy>=1.10' 'setuptools>=68' wheel pytest -d wheels/
 #     ./install.sh --wheels ./wheels
 #
 # setuptools and wheel are NOT optional here, and leaving them out is the
@@ -49,7 +49,7 @@ WHEELS=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --wheels)   WHEELS="${2:-}"; [ -n "$WHEELS" ] || die "--wheels needs a directory."; shift 2 ;;
-    --wheels=*) WHEELS="${1#*=}"; shift ;;
+    --wheels=*) WHEELS="${1#*=}"; [ -n "$WHEELS" ] || die "--wheels needs a directory."; shift ;;
     -h|--help)
       printf '\nusage: ./install.sh [--wheels DIR]\n\n  --wheels DIR   install offline from wheels in DIR (implies --no-index)\n\n'
       exit 0 ;;
@@ -124,7 +124,7 @@ fi
 # the same way, on all three.
 vpip() { "$VPY" -m pip "$@"; }
 
-vpip install -q --upgrade pip >/dev/null 2>&1 || true
+vpip install -q ${PIP_SRC[@]+"${PIP_SRC[@]}"} --upgrade pip >/dev/null 2>&1 || true
 
 # --- packages --------------------------------------------------------------
 # spdelta first: it is the one that actually computes, and it is the one whose
@@ -142,7 +142,7 @@ $out"
   fi
 done
 
-# The figure toolchain for repro/paper-artifact. Not a dependency of the three
+# The figure toolchain for repro/paper-artifact. Not a dependency of the four
 # packages above -- they run on numpy and scipy alone, which is a claim this
 # tree makes and keeps.
 #
@@ -166,10 +166,18 @@ if [ -d repro/paper-artifact ]; then
   fi
 fi
 
-# Optional: the runtime binding, present only in a --with-runtime tree.
+# Optional tier component: absence means this tree does not ship the binding;
+# presence makes it part of the install, so a failed install must be visible.
 if [ -d packages/hstcore-py ]; then
   printf '  install     %-12s' "hstcore"
-  vpip install -q ${PIP_SRC[@]+"${PIP_SRC[@]}"} ./packages/hstcore-py >/dev/null 2>&1 && printf 'ok\n' || printf 'skipped\n'
+  if out="$(vpip install -q ${PIP_SRC[@]+"${PIP_SRC[@]}"} ./packages/hstcore-py 2>&1)"; then
+    printf 'ok\n'
+  else
+    printf 'FAILED\n'
+    die "pip could not install packages/hstcore-py. This binding is present in the tree, so it is part of this install. Check the preceding package requirements and, for --wheels, include its dependencies.
+
+$out"
+  fi
 fi
 
 # --- prove it works --------------------------------------------------------
@@ -178,9 +186,13 @@ fi
 printf '  verify      '
 "$VPY" - <<'EOF' || die "Packages installed but do not import. The install is not usable."
 import sys
+from pathlib import Path
 
+modules = ["spdelta", "bindnum", "claimlint", "fitscreen"]
+if Path("packages/hstcore-py").is_dir():
+    modules.append("hstcore")
 missing = []
-for m in ("spdelta", "bindnum", "claimlint", "fitscreen"):
+for m in modules:
     try:
         __import__(m)          # actually import it, not just locate it
     except Exception as e:
@@ -189,7 +201,7 @@ for m in ("spdelta", "bindnum", "claimlint", "fitscreen"):
 if missing:
     print("FAILED — " + "; ".join(missing))
     sys.exit(1)
-print("ok — spdelta, bindnum, claimlint, fitscreen all import")
+print("ok — " + ", ".join(modules) + " all import")
 EOF
 
 cat <<EOF

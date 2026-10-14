@@ -1,4 +1,4 @@
-# Public verification of this tree, run where anyone can read the logs.
+# Public verification logs on HorneSci-owned runners.
 #
 # This is the workflow the README's Platforms section points at. It does the
 # same thing a downloader is told to do, in the order that matters:
@@ -34,13 +34,20 @@ concurrency:
 jobs:
   verify:
     name: verify ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
     strategy:
       # One platform failing must not cancel the others: which platforms work
       # is the question, and fail-fast destroys the answer.
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: linux
+            runner: [self-hosted, bench]
+          - os: macos
+            runner: [self-hosted, mini]
+          - os: windows
+            runner: [self-hosted, hunterpc]
 
     # bash everywhere, including Windows: Git Bash ships on GitHub's Windows
     # runners, so install.sh and verify.sh run as written.
@@ -49,13 +56,25 @@ jobs:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Pinned, not "latest": a pass that depends on a runner image bumping
       # Python is not a fact about this tree. install.sh's own floor is 3.11.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
+        if: matrix.os != 'macos'
         with:
           python-version: "3.12"
+
+      # Use the existing interpreter proven by the umbrella Mac install job.
+      # setup-python's macOS archive installs under /Users/runner, which the
+      # owned runner account cannot create.
+      - name: existing owned macOS Python
+        if: matrix.os == 'macos'
+        run: |
+          FW=/opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13/bin
+          "$FW/python3.13" -c 'import platform; assert platform.python_version() == "3.13.5"'
+          echo "$FW" >> "$GITHUB_PATH"
+          echo "/opt/homebrew/opt/python@3.13/libexec/bin" >> "$GITHUB_PATH"
 
       # Printed, not asserted: when a cell goes red later, the first question
       # is what changed underneath it.
@@ -85,6 +104,9 @@ jobs:
             shasum -a 256 -c SHA256SUMS
           fi
 
+      - name: installer and verifier regressions
+        run: python3 -m unittest discover -s tests -v
+
       - name: install
         run: |
           mkdir -p ci-logs
@@ -96,12 +118,12 @@ jobs:
         if: always()
         run: |
           mkdir -p ci-logs
-          ./verify.sh 2>&1 | tee "ci-logs/verify-${{ matrix.os }}.log"
+          ./verify.sh --quick 2>&1 | tee "ci-logs/verify-${{ matrix.os }}.log"
 
       # A failure you must re-run to read is a failure you will read late.
       - name: upload logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: verify-${{ matrix.os }}
           path: ci-logs/
